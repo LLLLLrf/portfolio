@@ -2,13 +2,18 @@
 import feather from 'feather-icons';
 import ProjectsFilter from './ProjectsFilter.vue';
 import ProjectSingle from './ProjectSingle.vue';
-import projects from '../../data/projects';
+import { apiService } from '../../services/apiService';
+import { useLanguage } from '../../composables/useLanguage';
 
 export default {
 	components: { ProjectSingle, ProjectsFilter },
-	data: () => {
+	setup() {
+		const { t } = useLanguage();
+		return { t };
+	},
+	data() {
 		return {
-			projects,
+			projects: [],
 			projectsHeading: 'Projects Portfolio',
 			selectedCategory: '',
 			searchProject: '',
@@ -17,32 +22,33 @@ export default {
 	computed: {
 		// Get the filtered projects
 		filteredProjects() {
+			let filtered = this.projects;
+			
 			if (this.selectedCategory) {
-				return this.filterProjectsByCategory();
-			} else if (this.searchProject) {
-				return this.filterProjectsBySearch();
+				filtered = filtered.filter((item) => {
+					const categoryZh = this.t(item.category);
+					return categoryZh.toLowerCase().includes(this.selectedCategory.toLowerCase());
+				});
 			}
-			return this.projects;
+			
+			if (this.searchProject) {
+				const searchRegExp = new RegExp(this.searchProject, 'i');
+				filtered = filtered.filter((el) => {
+					const title = this.t(el.title);
+					return title.match(searchRegExp);
+				});
+			}
+			
+			return filtered;
 		},
 	},
 	methods: {
-		// Filter projects by category
-		filterProjectsByCategory() {
-			return this.projects.filter((item) => {
-				let category =
-					item.category.charAt(0).toUpperCase() +
-					item.category.slice(1);
-				console.log(category);
-				return category.includes(this.selectedCategory);
-			});
-		},
-		// Filter projects by title search
-		filterProjectsBySearch() {
-			let project = new RegExp(this.searchProject, 'i');
-			return this.projects.filter((el) => el.title.match(project));
+		async loadProjects() {
+			this.projects = await apiService.getProjects();
 		},
 	},
 	mounted() {
+		this.loadProjects();
 		feather.replace();
 	},
 };

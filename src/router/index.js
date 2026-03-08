@@ -13,9 +13,6 @@ const routes = [
 	{
 		path: '/about',
 		name: 'About',
-		// route level code-splitting
-		// this generates a separate chunk (about.[hash].js) for this route
-		// which is lazy-loaded when the route is visited.
 		component: () =>
 			import(/* webpackChunkName: "about" */ '../views/About.vue'),
 		meta: {
@@ -25,9 +22,6 @@ const routes = [
 	{
 		path: '/projects',
 		name: 'Projects',
-		// route level code-splitting
-		// this generates a separate chunk (projects.[hash].js) for this route
-		// which is lazy-loaded when the route is visited.
 		component: () =>
 			import(/* webpackChunkName: "projects" */ '../views/Projects.vue'),
 		meta: {
@@ -35,11 +29,8 @@ const routes = [
 		},
 	},
 	{
-		path: '/projects/single-project',
+		path: '/projects/:id',
 		name: 'Single Project',
-		// route level code-splitting
-		// this generates a separate chunk (projects.[hash].js) for this route
-		// which is lazy-loaded when the route is visited.
 		component: () =>
 			import(
 				/* webpackChunkName: "projects" */ '../views/SingleProject.vue'
@@ -51,13 +42,28 @@ const routes = [
 	{
 		path: '/contact',
 		name: 'Contact',
-		// route level code-splitting
-		// this generates a separate chunk (projects.[hash].js) for this route
-		// which is lazy-loaded when the route is visited.
 		component: () =>
 			import(/* webpackChunkName: "projects" */ '../views/Contact.vue'),
 		meta: {
 			title: 'Stoman - Contact',
+		},
+	},
+	{
+		path: '/admin',
+		name: 'Admin Dashboard',
+		component: () =>
+			import(/* webpackChunkName: "admin" */ '../views/AdminDashboard.vue'),
+		meta: {
+			title: 'Admin Dashboard',
+		},
+	},
+	{
+		path: '/admin/login',
+		name: 'Admin Login',
+		component: () =>
+			import(/* webpackChunkName: "admin" */ '../views/AdminLogin.vue'),
+		meta: {
+			title: 'Admin Login',
 		},
 	},
 ];

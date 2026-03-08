@@ -4,6 +4,7 @@ import HireMeModal from '../HireMeModal.vue';
 import feather from 'feather-icons';
 import AppHeaderLinks from './AppHeaderLinks.vue';
 import Button from '../reusable/Button.vue';
+import LanguageSwitcher from './LanguageSwitcher.vue';
 
 export default {
 	components: {
@@ -11,6 +12,7 @@ export default {
 		HireMeModal,
 		AppHeaderLinks,
 		Button,
+		LanguageSwitcher,
 	},
 	data() {
 		return {
@@ -153,11 +155,14 @@ export default {
 					/>
 				</div>
 
+				<!-- Language switcher -->
+				<language-switcher class="ml-4" />
+				
 				<!-- Theme switcher large screen -->
 				<theme-switcher
 					:theme="theme"
 					@themeChanged="updateTheme"
-					class="ml-8 bg-primary-light dark:bg-ternary-dark px-3 py-2 shadow-sm rounded-xl cursor-pointer"
+					class="ml-4 bg-primary-light dark:bg-ternary-dark px-3 py-2 shadow-sm rounded-xl cursor-pointer"
 				/>
 			</div>
 		</div>

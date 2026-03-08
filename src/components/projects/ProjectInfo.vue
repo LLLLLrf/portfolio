@@ -14,103 +14,143 @@ export default {
 </script>
 
 <template>
-	<div class="block sm:flex gap-0 sm:gap-10 mt-14">
-		<!-- Single project left section details -->
-		<div class="w-full sm:w-1/3 text-left">
-			<!-- Single project client details -->
-			<div class="mb-7">
-				<p
-					class="font-general-medium text-2xl text-secondary-dark dark:text-secondary-light mb-2"
-				>
+	<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10 mt-12 md:mt-16 items-start">
+		
+		<div class="lg:col-span-1 w-full space-y-6">
+			
+			<div v-if="projectInfo.companyInfos" class="p-6 md:p-7 bg-white dark:bg-ternary-dark border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+				<p class="font-general-semibold text-lg md:text-xl text-secondary-dark dark:text-secondary-light mb-4 pb-3 border-b border-gray-100 dark:border-gray-700">
 					{{ projectInfo.clientHeading }}
 				</p>
-				<ul class="leading-loose">
+				<ul class="space-y-3">
 					<li
 						v-for="info in projectInfo.companyInfos"
-						:key="info"
-						class="font-general-regular text-ternary-dark dark:text-ternary-light"
+						:key="info.id"
+						class="flex flex-col sm:flex-row sm:items-start font-general-regular text-ternary-dark dark:text-ternary-light"
 					>
-						<span>{{ info.title }}: </span>
+						<span class="font-semibold mb-1 sm:mb-0 sm:min-w-[100px]">{{ info.title }}:</span>
 						<a
-							href="#"
-							:class="
-								info.title == 'Website' || info.title == 'Phone'
-									? 'hover:underline cursor-pointer'
-									: ''
-							"
-							aria-label="Project Website and Phone"
-							>{{ info.details }}</a
+							v-if="info.title === '项目地址' || info.title === '代码网址' || info.title === 'Website' || info.title === 'Phone'"
+							:href="info.title === 'Phone' ? `tel:${info.details}` : info.details"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="hover:underline cursor-pointer text-blue-600 dark:text-blue-400 break-all"
+							aria-label="Project Link"
 						>
+							{{ info.details }}
+						</a>
+						<span v-else class="text-gray-600 dark:text-gray-300">{{ info.details }}</span>
 					</li>
 				</ul>
 			</div>
 
-			<!-- Single project objectives -->
-			<div class="mb-7">
-				<p
-					class="font-general-medium text-2xl text-ternary-dark dark:text-ternary-light mb-2"
-				>
+			<div v-if="projectInfo.objectivesDetails" class="p-6 md:p-7 bg-white dark:bg-ternary-dark border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+				<p class="font-general-semibold text-lg md:text-xl text-ternary-dark dark:text-ternary-light mb-4 pb-3 border-b border-gray-100 dark:border-gray-700">
 					{{ projectInfo.objectivesHeading }}
 				</p>
-				<p
-					class="font-general-regular text-primary-dark dark:text-ternary-light"
-				>
+				<p class="font-general-regular text-gray-600 dark:text-gray-300 leading-relaxed text-base">
 					{{ projectInfo.objectivesDetails }}
 				</p>
 			</div>
 
-			<!-- Single project technologies -->
-			<div class="mb-7">
-				<p
-					class="font-general-medium text-2xl text-ternary-dark dark:text-ternary-light mb-2"
-				>
+			<div v-if="projectInfo.technologies" class="p-6 md:p-7 bg-white dark:bg-ternary-dark border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+				<p class="font-general-semibold text-lg md:text-xl text-ternary-dark dark:text-ternary-light mb-4 pb-3 border-b border-gray-100 dark:border-gray-700">
 					{{ projectInfo.technologies[0].title }}
 				</p>
-				<p
-					class="font-general-regular text-primary-dark dark:text-ternary-light"
-				>
-					{{ projectInfo.technologies[0].techs.join(', ') }}
-				</p>
+				<div class="flex flex-wrap gap-2">
+					<span
+						v-for="(tech, index) in projectInfo.technologies[0].techs"
+						:key="index"
+						class="px-3 py-1.5 md:px-4 md:py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-sm font-medium text-ternary-dark dark:text-ternary-light hover:bg-blue-500 hover:text-white dark:hover:bg-blue-600 transition-colors duration-300 cursor-default"
+					>
+						{{ tech }}
+					</span>
+				</div>
 			</div>
 
-			<!-- Single project social sharing -->
-			<div>
-				<p
-					class="font-general-medium text-2xl text-ternary-dark dark:text-ternary-light mb-2"
-				>
+			<div class="p-6 md:p-7 bg-white dark:bg-ternary-dark border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+				<p class="font-general-semibold text-lg md:text-xl text-ternary-dark dark:text-ternary-light mb-4 pb-3 border-b border-gray-100 dark:border-gray-700">
 					{{ projectInfo.socialSharingsHeading }}
 				</p>
-				<div class="flex items-center gap-3 mt-5">
+				<div class="flex flex-wrap items-center gap-3">
 					<a
 						v-for="social in projectInfo.socialSharings"
 						:key="social.id"
 						:href="social.url"
-						target="__blank"
+						target="_blank"
 						aria-label="Share Project"
-						class="bg-ternary-light dark:bg-ternary-dark text-gray-400 hover:text-primary-dark dark:hover:text-primary-light p-2 rounded-lg shadow-sm duration-500"
-						><i
-							:data-feather="social.icon"
-							class="w-4 lg:w-5 h-4 lg:h-5"
-						></i
-					></a>
+						class="bg-gray-50 dark:bg-gray-800 text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 p-3 rounded-xl shadow-sm duration-300 hover:shadow-md hover:-translate-y-1 transition-all"
+					>
+						<i :data-feather="social.icon" class="w-5 h-5"></i>
+					</a>
 				</div>
 			</div>
 		</div>
 
-		<!-- Single project right section details -->
-		<div class="w-full sm:w-2/3 text-left mt-10 sm:mt-0">
-			<p
-				class="font-general-medium text-primary-dark dark:text-primary-light text-2xl font-bold mb-7"
-			>
-				{{ projectInfo.projectDetailsHeading }}
-			</p>
-			<p
-				v-for="projectDetail in projectInfo.projectDetails"
-				:key="projectDetail.id"
-				class="font-general-regular mb-5 text-lg text-ternary-dark dark:text-ternary-light"
-			>
-				{{ projectDetail.details }}
-			</p>
+		<div class="lg:col-span-2 w-full text-left space-y-8">
+			<div v-if="projectInfo.challengeDetails" class="p-6 md:p-8 lg:p-10 bg-white dark:bg-ternary-dark border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm">
+				<h2 class="font-general-bold text-primary-dark dark:text-primary-light text-2xl md:text-3xl mb-6 md:mb-8">
+					{{ projectInfo.challengeHeading }}
+				</h2>
+				<p class="font-general-regular text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+					{{ projectInfo.challengeDetails }}
+				</p>
+			</div>
+
+			<div v-if="projectInfo.projectDetails" class="p-6 md:p-8 lg:p-10 bg-white dark:bg-ternary-dark border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm">
+				<h2 class="font-general-bold text-primary-dark dark:text-primary-light text-2xl md:text-3xl mb-6 md:mb-8">
+					{{ projectInfo.projectDetailsHeading }}
+				</h2>
+				
+				<div class="space-y-6 md:space-y-8">
+					<p
+						v-for="projectDetail in projectInfo.projectDetails"
+						:key="projectDetail.id"
+						class="font-general-regular text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed"
+					>
+						{{ projectDetail.details }}
+					</p>
+				</div>
+			</div>
 		</div>
+
 	</div>
 </template>
+
+<style scoped>
+/* Optional: ensures smooth scrolling if the page jumps around */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Add custom scrollbar for better appearance */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+</style>

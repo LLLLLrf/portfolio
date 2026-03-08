@@ -1,19 +1,25 @@
 <script>
+import { useLanguage } from '../../composables/useLanguage';
+
 export default {
 	props: ['project'],
+	setup() {
+		const { t } = useLanguage();
+		return { t };
+	},
 };
 </script>
 
 <template>
 	<router-link
-		to="/projects/single-project"
+		:to="`/projects/${project.id}`"
 		class="rounded-xl shadow-lg hover:shadow-xl cursor-pointer mb-10 sm:mb-0 bg-secondary-light dark:bg-ternary-dark"
 		aria-label="Single Project"
 	>
 		<div>
 			<img
-				:src="project.img"
-				:alt="project.title"
+				:src="project.thumbnail"
+				:alt="t(project.title)"
 				class="rounded-t-xl border-none"
 			/>
 		</div>
@@ -21,11 +27,11 @@ export default {
 			<p
 				class="font-general-semibold text-xl text-ternary-dark dark:text-ternary-light font-semibold mb-2"
 			>
-				{{ project.title }}
+				{{ t(project.title) }}
 			</p>
 			<span
 				class="font-general-medium text-lg text-ternary-dark dark:text-ternary-light"
-				>{{ project.category }}</span
+				>{{ t(project.category) }}</span
 			>
 		</div>
 	</router-link>
