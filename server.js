@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 
+const PASSWORD_FILE = path.join(__dirname, 'data', 'password.json');
+
 const app = express();
 const PORT = 3002;
 
@@ -246,6 +248,30 @@ function saveAbout(aboutData) {
     return true;
   } catch (error) {
     console.error('Error saving about data:', error);
+    return false;
+  }
+}
+
+function loadPassword() {
+  if (fs.existsSync(PASSWORD_FILE)) {
+    try {
+      const data = fs.readFileSync(PASSWORD_FILE, 'utf8');
+      const passwordData = JSON.parse(data);
+      return passwordData.password;
+    } catch (error) {
+      console.error('Error loading password:', error);
+      return 'admin123';
+    }
+  }
+  return 'admin123';
+}
+
+function savePassword(password) {
+  try {
+    fs.writeFileSync(PASSWORD_FILE, JSON.stringify({ password }, null, 2));
+    return true;
+  } catch (error) {
+    console.error('Error saving password:', error);
     return false;
   }
 }
@@ -547,6 +573,30 @@ app.delete('/api/resumes/:id', (req, res) => {
   
   saveCVConfig(config);
   res.json({ success: true });
+});
+
+app.post('/api/change-password', (req, res) => {
+  if (!API_ENABLED) {
+    return res.status(403).json({ error: 'API disabled' });
+  }
+  
+  const { oldPassword, newPassword } = req.body;
+  
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({ success: false, message: '请提供旧密码和新密码' });
+  }
+  
+  const currentPassword = loadPassword();
+  
+  if (currentPassword !== oldPassword) {
+    return res.status(401).json({ success: false, message: '旧密码错误' });
+  }
+  
+  if (savePassword(newPassword)) {
+    res.json({ success: true, message: '密码修改成功' });
+  } else {
+    res.status(500).json({ success: false, message: '密码修改失败' });
+  }
 });
 
 app.listen(PORT, () => {

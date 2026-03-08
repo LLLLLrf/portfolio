@@ -533,5 +533,41 @@ export const apiService = {
 
   async setCurrentResumeById(id) {
     return this.setCurrentResume(id);
+  },
+
+  async changePassword(oldPassword, newPassword) {
+    const backendAvailable = await this.checkBackendAvailable();
+    if (backendAvailable) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/change-password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ oldPassword, newPassword }),
+        });
+        if (!response.ok) throw new Error('Failed to change password');
+        const result = await response.json();
+        if (result.success) {
+          localStorage.setItem(STORAGE_KEY_AUTH, newPassword);
+        }
+        return result;
+      } catch (error) {
+        console.warn('Backend failed, falling back to localStorage');
+      }
+    }
+    
+    // 本地模式下的密码修改
+    const storedPassword = localStorage.getItem(STORAGE_KEY_AUTH);
+    if (!storedPassword) {
+      localStorage.setItem(STORAGE_KEY_AUTH, 'admin123');
+    }
+    
+    if (storedPassword === oldPassword) {
+      localStorage.setItem(STORAGE_KEY_AUTH, newPassword);
+      return { success: true, message: '密码修改成功' };
+    } else {
+      return { success: false, message: '旧密码错误' };
+    }
   }
 };

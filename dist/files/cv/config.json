@@ -1,0 +1,46 @@
+{
+  "files": [
+    "业余简历.pdf",
+    "保研简历.pdf",
+    "廖若凡工作简历.pdf",
+    "廖若凡简历.pdf",
+    "英文简历.pdf"
+  ],
+  "configs": [
+    {
+      "id": "业余简历",
+      "fileName": "业余简历.pdf",
+      "alias": "业余简历",
+      "isCurrent": false,
+      "createdAt": 1704067200000
+    },
+    {
+      "id": "保研简历",
+      "fileName": "保研简历.pdf",
+      "alias": "保研简历123",
+      "isCurrent": true,
+      "createdAt": 1704153600000
+    },
+    {
+      "id": "廖若凡工作简历",
+      "fileName": "廖若凡工作简历.pdf",
+      "alias": "工作简历",
+      "isCurrent": false,
+      "createdAt": 1706745600000
+    },
+    {
+      "id": "廖若凡简历",
+      "fileName": "廖若凡简历.pdf",
+      "alias": "主简历",
+      "isCurrent": false,
+      "createdAt": 1706832000000
+    },
+    {
+      "id": "英文简历",
+      "fileName": "英文简历.pdf",
+      "alias": "English Resume",
+      "isCurrent": false,
+      "createdAt": 1707004800000
+    }
+  ]
+}

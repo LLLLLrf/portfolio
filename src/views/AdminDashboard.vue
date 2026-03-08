@@ -25,7 +25,12 @@ export default {
       isUploading: false,
       tagsInput: '',
       technologiesInput: '',
-      relatedProjectsInput: ''
+      relatedProjectsInput: '',
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+      passwordMessage: '',
+      passwordSuccess: false
     };
   },
   watch: {
@@ -338,6 +343,38 @@ export default {
         console.error('复制失败:', err);
         alert('复制失败，请手动复制配置');
       });
+    },
+
+    async changePassword() {
+      if (!this.oldPassword || !this.newPassword || !this.confirmPassword) {
+        this.passwordMessage = '请填写所有密码字段';
+        this.passwordSuccess = false;
+        return;
+      }
+
+      if (this.newPassword !== this.confirmPassword) {
+        this.passwordMessage = '新密码和确认密码不一致';
+        this.passwordSuccess = false;
+        return;
+      }
+
+      try {
+        const result = await apiService.changePassword(this.oldPassword, this.newPassword);
+        if (result.success) {
+          this.passwordMessage = result.message || '密码修改成功';
+          this.passwordSuccess = true;
+          this.oldPassword = '';
+          this.newPassword = '';
+          this.confirmPassword = '';
+        } else {
+          this.passwordMessage = result.message || '密码修改失败';
+          this.passwordSuccess = false;
+        }
+      } catch (error) {
+        this.passwordMessage = '修改密码时发生错误';
+        this.passwordSuccess = false;
+        console.error('Error changing password:', error);
+      }
     }
   }
 };
@@ -406,6 +443,18 @@ export default {
         >
           <i data-feather="file-text" class="w-4 h-4 inline mr-2"></i>
           简历管理
+        </button>
+        <button
+          @click="activeTab = 'password'"
+          :class="[
+            'admin-tab',
+            activeTab === 'password'
+              ? 'admin-tab-active'
+              : 'admin-tab-inactive'
+          ]"
+        >
+          <i data-feather="key" class="w-4 h-4 inline mr-2"></i>
+          修改密码
         </button>
       </nav>
     </div>
@@ -1086,6 +1135,67 @@ export default {
           >
             保存
           </button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="activeTab === 'password'">
+      <div class="admin-card p-8">
+        <h3 class="font-general-semibold text-2xl text-gray-800 dark:text-gray-100 mb-6">修改密码</h3>
+        
+        <div v-if="passwordMessage" :class="[
+          'mb-4 p-4 rounded-lg',
+          passwordSuccess ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' : 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200'
+        ]">
+          {{ passwordMessage }}
+        </div>
+        
+        <div class="space-y-6">
+          <div>
+            <label class="form-label">
+              旧密码
+            </label>
+            <input
+              v-model="oldPassword"
+              type="password"
+              class="form-input"
+              placeholder="请输入旧密码"
+            />
+          </div>
+          
+          <div>
+            <label class="form-label">
+              新密码
+            </label>
+            <input
+              v-model="newPassword"
+              type="password"
+              class="form-input"
+              placeholder="请输入新密码"
+            />
+          </div>
+          
+          <div>
+            <label class="form-label">
+              确认新密码
+            </label>
+            <input
+              v-model="confirmPassword"
+              type="password"
+              class="form-input"
+              placeholder="请再次输入新密码"
+            />
+          </div>
+          
+          <div class="pt-4">
+            <button
+              @click="changePassword"
+              class="btn-success px-6 py-3 w-full"
+            >
+              <i data-feather="save" class="w-4 h-4 inline mr-2"></i>
+              修改密码
+            </button>
+          </div>
         </div>
       </div>
     </div>
