@@ -201,7 +201,6 @@ PORT=3002 node server.js
 
 欢迎提交 Issue 和 Pull Request 来改进这个项目。
 
-## 联系方式
+## 感谢
 
-- 邮箱：your.email@example.com
-- 网站：your-portfolio.com
+https://github.com/realstoman/vuejs-tailwindcss-portfolio
