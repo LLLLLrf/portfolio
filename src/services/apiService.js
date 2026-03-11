@@ -12,11 +12,13 @@ export const apiService = {
       });
       if (response.ok) {
         const data = await response.json();
+        console.log('Backend available:', data.enabled);
         return data.enabled;
       }
+      console.log('Backend response not ok');
       return false;
     } catch (error) {
-      console.warn('Backend not available, falling back to local mode');
+      console.warn('Backend not available, falling back to local mode:', error);
       return false;
     }
   },
@@ -54,6 +56,7 @@ export const apiService = {
     const backendAvailable = await this.checkBackendAvailable();
     if (backendAvailable) {
       try {
+        console.log('Saving project to backend:', project.id);
         const response = await fetch(`${API_BASE_URL}/projects`, {
           method: 'POST',
           headers: {
@@ -62,11 +65,14 @@ export const apiService = {
           body: JSON.stringify(project),
         });
         if (!response.ok) throw new Error('Failed to save');
-        return await response.json();
+        const savedProject = await response.json();
+        console.log('Project saved to backend:', savedProject.id);
+        return savedProject;
       } catch (error) {
-        console.warn('Backend failed, falling back to localStorage');
+        console.warn('Backend failed, falling back to localStorage:', error);
       }
     }
+    console.log('Saving project to localStorage:', project.id);
     return this.saveProjectLocal(project);
   },
 
@@ -351,6 +357,7 @@ export const apiService = {
     const backendAvailable = await this.checkBackendAvailable();
     if (backendAvailable) {
       try {
+        console.log('Saving about me to backend');
         const response = await fetch(`${API_BASE_URL}/about`, {
           method: 'POST',
           headers: {
@@ -359,11 +366,14 @@ export const apiService = {
           body: JSON.stringify(data),
         });
         if (!response.ok) throw new Error('Failed to save');
-        return await response.json();
+        const savedData = await response.json();
+        console.log('About me saved to backend');
+        return savedData;
       } catch (error) {
-        console.warn('Backend failed, falling back to localStorage');
+        console.warn('Backend failed, falling back to localStorage:', error);
       }
     }
+    console.log('Saving about me to localStorage');
     this.saveAboutMeLocal(data);
   },
 

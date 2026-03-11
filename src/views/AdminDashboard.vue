@@ -2,7 +2,7 @@
 import { apiService } from '../services/apiService';
 import { useLanguage } from '../composables/useLanguage';
 import { useRouter } from 'vue-router';
-const feather = require('feather-icons');
+import feather from 'feather-icons';
 
 export default {
   setup() {
@@ -25,12 +25,7 @@ export default {
       isUploading: false,
       tagsInput: '',
       technologiesInput: '',
-      relatedProjectsInput: '',
-      oldPassword: '',
-      newPassword: '',
-      confirmPassword: '',
-      passwordMessage: '',
-      passwordSuccess: false
+      relatedProjectsInput: ''
     };
   },
   watch: {
@@ -61,14 +56,6 @@ export default {
         }
       },
       immediate: true
-    },
-    activeTab: {
-      handler() {
-        // 当tab切换时，确保DOM更新后重新替换图标
-        this.$nextTick(() => {
-          feather.replace();
-        });
-      }
     }
   },
   mounted() {
@@ -80,10 +67,7 @@ export default {
     this.loadProjects();
     this.loadAboutMe();
     this.loadResumes();
-    // 确保DOM完全渲染后再替换图标
-    this.$nextTick(() => {
-      feather.replace();
-    });
+    feather.replace();
   },
   methods: {
     updateTags() {
@@ -100,25 +84,13 @@ export default {
     },
     async loadProjects() {
       this.projects = await apiService.getProjects();
-      // 数据加载完成后重新替换图标
-      this.$nextTick(() => {
-        feather.replace();
-      });
     },
-    async loadAboutMe() {
-      this.aboutMeData = await apiService.getAboutMe();
-      // 数据加载完成后重新替换图标
-      this.$nextTick(() => {
-        feather.replace();
-      });
+    loadAboutMe() {
+      this.aboutMeData = apiService.getAboutMe();
     },
     async loadResumes() {
       const config = await apiService.getResumes();
       this.resumeVersions = config.configs || [];
-      // 数据加载完成后重新替换图标
-      this.$nextTick(() => {
-        feather.replace();
-      });
     },
     
     createNewProject() {
@@ -129,8 +101,12 @@ export default {
         thumbnail: '',
         date: '',
         tags: [],
-        projectUrl: '',
-        codeUrl: '',
+        client: {
+          name: { zh: '', en: '' },
+          services: { zh: '', en: '' },
+          website: '',
+          phone: ''
+        },
         objective: { zh: '', en: '' },
         technologies: [],
         challenge: { zh: '', en: '' },
@@ -150,8 +126,12 @@ export default {
         thumbnail: projectCopy.thumbnail || '',
         date: projectCopy.date || '',
         tags: projectCopy.tags || [],
-        projectUrl: projectCopy.projectUrl || '',
-        codeUrl: projectCopy.codeUrl || '',
+        client: projectCopy.client || {
+          name: { zh: '', en: '' },
+          services: { zh: '', en: '' },
+          website: '',
+          phone: ''
+        },
         objective: projectCopy.objective || { zh: '', en: '' },
         technologies: projectCopy.technologies || [],
         challenge: projectCopy.challenge || { zh: '', en: '' },
@@ -243,15 +223,15 @@ export default {
       });
     },
 
-    async openAboutEdit() {
-      this.aboutMeData = await apiService.getAboutMe();
+    openAboutEdit() {
+      this.aboutMeData = apiService.getAboutMe();
       this.isAboutModalOpen = true;
     },
 
     addBio() {
       this.aboutMeData.bios.push({
         id: Date.now(),
-        bio: { zh: '', en: '' }
+        bio: ''
       });
     },
 
@@ -259,8 +239,8 @@ export default {
       this.aboutMeData.bios.splice(index, 1);
     },
 
-    async saveAboutMe() {
-      await apiService.saveAboutMe(this.aboutMeData);
+    saveAboutMe() {
+      apiService.saveAboutMe(this.aboutMeData);
       this.isAboutModalOpen = false;
     },
 
@@ -343,63 +323,31 @@ export default {
         console.error('复制失败:', err);
         alert('复制失败，请手动复制配置');
       });
-    },
-
-    async changePassword() {
-      if (!this.oldPassword || !this.newPassword || !this.confirmPassword) {
-        this.passwordMessage = '请填写所有密码字段';
-        this.passwordSuccess = false;
-        return;
-      }
-
-      if (this.newPassword !== this.confirmPassword) {
-        this.passwordMessage = '新密码和确认密码不一致';
-        this.passwordSuccess = false;
-        return;
-      }
-
-      try {
-        const result = await apiService.changePassword(this.oldPassword, this.newPassword);
-        if (result.success) {
-          this.passwordMessage = result.message || '密码修改成功';
-          this.passwordSuccess = true;
-          this.oldPassword = '';
-          this.newPassword = '';
-          this.confirmPassword = '';
-        } else {
-          this.passwordMessage = result.message || '密码修改失败';
-          this.passwordSuccess = false;
-        }
-      } catch (error) {
-        this.passwordMessage = '修改密码时发生错误';
-        this.passwordSuccess = false;
-        console.error('Error changing password:', error);
-      }
     }
   }
 };
 </script>
 
 <template>
-  <div class="admin-container container mx-auto mt-10 p-4">
-    <div class="admin-header flex justify-between items-center mb-8 p-6 rounded-xl">
-      <h1 class="font-general-semibold text-3xl text-gray-800 dark:text-gray-100">
+  <div class="container mx-auto mt-10 p-4">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="font-general-semibold text-3xl text-ternary-dark dark:text-ternary-light">
         管理后台
       </h1>
       <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2 px-3 py-1 rounded-lg" :class="backendAvailable ? 'badge-success' : 'badge-warning'">
-          <span class="w-2 h-2 rounded-full" :class="backendAvailable ? 'bg-emerald-600' : 'bg-amber-600'"></span>
+        <div class="flex items-center gap-2 px-3 py-1 rounded-lg" :class="backendAvailable ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'">
+          <span class="w-2 h-2 rounded-full" :class="backendAvailable ? 'bg-green-500' : 'bg-yellow-500'"></span>
           <span class="text-sm">{{ backendAvailable ? '后端已连接' : '仅前端模式' }}</span>
         </div>
         <button
           @click="resetData"
-          class="btn-warning"
+          class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
         >
           重置数据
         </button>
         <button
           @click="logout"
-          class="btn-danger"
+          class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
         >
           退出登录
         </button>
@@ -411,10 +359,10 @@ export default {
         <button
           @click="activeTab = 'projects'"
           :class="[
-            'admin-tab',
+            'px-4 py-2 font-general-semibold rounded-t-lg transition-colors',
             activeTab === 'projects'
-              ? 'admin-tab-active'
-              : 'admin-tab-inactive'
+              ? 'bg-blue-500 text-white'
+              : 'text-ternary-dark dark:text-ternary-light hover:bg-gray-100 dark:hover:bg-gray-800'
           ]"
         >
           <i data-feather="folder" class="w-4 h-4 inline mr-2"></i>
@@ -423,10 +371,10 @@ export default {
         <button
           @click="activeTab = 'about'"
           :class="[
-            'admin-tab',
+            'px-4 py-2 font-general-semibold rounded-t-lg transition-colors',
             activeTab === 'about'
-              ? 'admin-tab-active'
-              : 'admin-tab-inactive'
+              ? 'bg-blue-500 text-white'
+              : 'text-ternary-dark dark:text-ternary-light hover:bg-gray-100 dark:hover:bg-gray-800'
           ]"
         >
           <i data-feather="user" class="w-4 h-4 inline mr-2"></i>
@@ -435,26 +383,14 @@ export default {
         <button
           @click="activeTab = 'resumes'"
           :class="[
-            'admin-tab',
+            'px-4 py-2 font-general-semibold rounded-t-lg transition-colors',
             activeTab === 'resumes'
-              ? 'admin-tab-active'
-              : 'admin-tab-inactive'
+              ? 'bg-blue-500 text-white'
+              : 'text-ternary-dark dark:text-ternary-light hover:bg-gray-100 dark:hover:bg-gray-800'
           ]"
         >
           <i data-feather="file-text" class="w-4 h-4 inline mr-2"></i>
           简历管理
-        </button>
-        <button
-          @click="activeTab = 'password'"
-          :class="[
-            'admin-tab',
-            activeTab === 'password'
-              ? 'admin-tab-active'
-              : 'admin-tab-inactive'
-          ]"
-        >
-          <i data-feather="key" class="w-4 h-4 inline mr-2"></i>
-          修改密码
         </button>
       </nav>
     </div>
@@ -463,45 +399,45 @@ export default {
       <div class="mb-6">
         <button
           @click="createNewProject"
-          class="btn-success px-6 py-3"
+          class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-general-semibold"
         >
           <i data-feather="plus" class="w-4 h-4 inline mr-2"></i>
           新建项目
         </button>
       </div>
 
-      <div class="admin-card overflow-hidden">
-        <table class="admin-table">
-          <thead>
+      <div class="bg-secondary-light dark:bg-ternary-dark rounded-xl shadow-lg overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-primary-light dark:bg-secondary-dark">
             <tr>
-              <th>项目标题</th>
-              <th>分类</th>
-              <th>日期</th>
-              <th class="text-right">操作</th>
+              <th class="px-6 py-4 text-left font-general-semibold text-ternary-dark dark:text-ternary-light">项目标题</th>
+              <th class="px-6 py-4 text-left font-general-semibold text-ternary-dark dark:text-ternary-light">分类</th>
+              <th class="px-6 py-4 text-left font-general-semibold text-ternary-dark dark:text-ternary-light">日期</th>
+              <th class="px-6 py-4 text-right font-general-semibold text-ternary-dark dark:text-ternary-light">操作</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="project in projects" :key="project.id">
-              <td class="px-6 py-4 text-gray-800 dark:text-gray-200">
+            <tr v-for="project in projects" :key="project.id" class="border-t border-gray-200 dark:border-secondary-dark">
+              <td class="px-6 py-4 text-ternary-dark dark:text-ternary-light">
                 {{ t(project.title) }}
               </td>
-              <td class="px-6 py-4 text-gray-700 dark:text-gray-300">
+              <td class="px-6 py-4 text-ternary-dark dark:text-ternary-light">
                 {{ t(project.category) }}
               </td>
-              <td class="px-6 py-4 text-gray-700 dark:text-gray-300">
+              <td class="px-6 py-4 text-ternary-dark dark:text-ternary-light">
                 {{ project.date }}
               </td>
               <td class="px-6 py-4 text-right">
                 <button
                   @click="editProject(project)"
-                  class="btn-primary px-3 py-1 mr-2 text-sm"
+                  class="px-3 py-1 mr-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                 >
                   <i data-feather="edit" class="w-4 h-4 inline"></i>
                   编辑
                 </button>
                 <button
                   @click="deleteProject(project.id)"
-                  class="btn-danger px-3 py-1 text-sm"
+                  class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                 >
                   <i data-feather="trash" class="w-4 h-4 inline"></i>
                   删除
@@ -517,17 +453,17 @@ export default {
       <div class="mb-6">
         <button
           @click="openAboutEdit"
-          class="btn-success px-6 py-3"
+          class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-general-semibold"
         >
           <i data-feather="edit" class="w-4 h-4 inline mr-2"></i>
           编辑关于我
         </button>
       </div>
 
-      <div class="admin-card p-6">
-        <h3 class="font-general-semibold text-xl text-gray-800 dark:text-gray-100 mb-4">当前关于我内容</h3>
-        <div v-for="bio in aboutMeData?.bios" :key="bio.id" class="mb-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-          <p class="text-gray-700 dark:text-gray-300">{{ bio.bio }}</p>
+      <div class="bg-secondary-light dark:bg-ternary-dark rounded-xl shadow-lg p-6">
+        <h3 class="font-general-semibold text-xl text-ternary-dark dark:text-ternary-light mb-4">当前关于我内容</h3>
+        <div v-for="bio in aboutMeData?.bios" :key="bio.id" class="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <p class="text-ternary-dark dark:text-ternary-light">{{ bio.bio }}</p>
         </div>
       </div>
     </div>
@@ -549,7 +485,7 @@ export default {
                 'px-6 py-3 rounded-lg font-general-semibold cursor-pointer inline-flex items-center gap-2',
                 isUploading 
                   ? 'bg-gray-400 text-white cursor-not-allowed'
-                  : 'btn-success'
+                  : 'bg-green-500 text-white hover:bg-green-600'
               ]"
               :disabled="isUploading"
             >
@@ -558,17 +494,17 @@ export default {
             </label>
           </div>
           
-          <div v-else class="flex-1 badge-warning p-4 rounded-lg">
-            <p class="text-sm flex items-center gap-2">
+          <div v-else class="flex-1 bg-yellow-50 dark:bg-yellow-900 p-4 rounded-lg">
+            <p class="text-yellow-800 dark:text-yellow-200 text-sm flex items-center gap-2">
               <i data-feather="info" class="w-4 h-4"></i>
-              仅前端模式：请将简历文件放到 <code class="bg-white dark:bg-gray-800 px-2 py-1 rounded">public/files/cv</code> 目录
+              仅前端模式：请将简历文件放到 <code class="bg-yellow-200 dark:bg-yellow-800 px-2 py-1 rounded">public/files/cv</code> 目录
             </p>
           </div>
           
           <button
             v-if="resumeVersions.length > 0"
             @click="exportConfig"
-            class="btn-primary inline-flex items-center gap-2"
+            class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 inline-flex items-center gap-2"
           >
             <i data-feather="copy" class="w-4 h-4"></i>
             复制配置
@@ -576,7 +512,7 @@ export default {
           
           <button
             @click="loadResumes"
-            class="btn-secondary inline-flex items-center gap-2"
+            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 inline-flex items-center gap-2"
           >
             <i data-feather="refresh-cw" class="w-4 h-4"></i>
             刷新
@@ -584,9 +520,9 @@ export default {
         </div>
       </div>
 
-      <div v-if="resumeVersions.length === 0" class="admin-card p-12 text-center">
+      <div v-if="resumeVersions.length === 0" class="bg-secondary-light dark:bg-ternary-dark rounded-xl shadow-lg p-12 text-center">
         <i data-feather="file-text" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
-        <p class="text-gray-800 dark:text-gray-100 text-lg">暂无简历</p>
+        <p class="text-ternary-dark dark:text-ternary-light text-lg">暂无简历</p>
         <p class="text-gray-500 dark:text-gray-400 mt-2">
           {{ backendAvailable ? '点击上方按钮上传简历' : '请在 public/files/cv 目录下添加简历文件后刷新' }}
         </p>
@@ -597,23 +533,23 @@ export default {
           v-for="resume in resumeVersions"
           :key="resume.id"
           :class="[
-            'admin-card p-6 transition-all',
-            resume.isCurrent ? 'ring-2 ring-emerald-500' : ''
+            'bg-secondary-light dark:bg-ternary-dark rounded-xl shadow-lg p-6 transition-all',
+            resume.isCurrent ? 'ring-2 ring-green-500' : ''
           ]"
         >
           <div class="flex flex-wrap items-start gap-4">
             <div class="flex-shrink-0">
-              <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center">
-                <i data-feather="file-text" class="w-6 h-6 text-indigo-600 dark:text-indigo-400"></i>
+              <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                <i data-feather="file-text" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i>
               </div>
             </div>
             
             <div class="flex-grow min-w-0">
               <div class="flex items-center gap-3 mb-2">
-                <h4 class="font-general-semibold text-lg text-gray-800 dark:text-gray-100 truncate">
+                <h4 class="font-general-semibold text-lg text-ternary-dark dark:text-ternary-light truncate">
                   {{ resume.alias }}
                 </h4>
-                <span v-if="resume.isCurrent" class="badge badge-success">
+                <span v-if="resume.isCurrent" class="px-2 py-1 bg-green-500 text-white text-xs rounded flex-shrink-0">
                   当前使用
                 </span>
               </div>
@@ -629,7 +565,7 @@ export default {
               <button
                 v-if="!resume.isCurrent"
                 @click="setCurrentResume(resume.id)"
-                class="btn-primary px-3 py-1.5 text-sm inline-flex items-center gap-1"
+                class="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm inline-flex items-center gap-1"
               >
                 <i data-feather="star" class="w-4 h-4"></i>
                 设为当前
@@ -637,7 +573,7 @@ export default {
               
               <button
                 @click="startEditAlias(resume)"
-                class="btn-warning px-3 py-1.5 text-sm inline-flex items-center gap-1"
+                class="px-3 py-1.5 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-sm inline-flex items-center gap-1"
               >
                 <i data-feather="edit-2" class="w-4 h-4"></i>
                 别名
@@ -645,7 +581,7 @@ export default {
               
               <button
                 @click="downloadResume(resume)"
-                class="btn-secondary px-3 py-1.5 text-sm inline-flex items-center gap-1"
+                class="px-3 py-1.5 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm inline-flex items-center gap-1"
               >
                 <i data-feather="download" class="w-4 h-4"></i>
                 下载
@@ -653,7 +589,7 @@ export default {
               
               <button
                 @click="deleteResume(resume.id)"
-                class="btn-danger px-3 py-1.5 text-sm inline-flex items-center gap-1"
+                class="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm inline-flex items-center gap-1"
               >
                 <i data-feather="trash" class="w-4 h-4"></i>
                 删除
@@ -666,15 +602,15 @@ export default {
               <input
                 v-model="editingResumeAlias"
                 type="text"
-                class="form-input flex-grow"
+                class="flex-grow px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-ternary-dark dark:text-ternary-light"
                 placeholder="输入别名"
                 @keyup.enter="saveResumeAlias"
                 @keyup.escape="cancelEditAlias"
               />
-              <button @click="saveResumeAlias" class="btn-success">
+              <button @click="saveResumeAlias" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
                 保存
               </button>
-              <button @click="cancelEditAlias" class="btn-secondary">
+              <button @click="cancelEditAlias" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
                 取消
               </button>
             </div>
@@ -683,11 +619,11 @@ export default {
       </div>
     </div>
 
-    <div v-if="isProjectModalOpen" class="modal-backdrop">
-      <div class="modal-content">
-        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+    <div v-if="isProjectModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-secondary-light dark:bg-ternary-dark rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-gray-200 dark:border-secondary-dark">
           <div class="flex justify-between items-center">
-            <h2 class="font-general-semibold text-2xl text-gray-800 dark:text-gray-100">
+            <h2 class="font-general-semibold text-2xl text-ternary-dark dark:text-ternary-light">
               {{ editingProject.id ? '编辑项目' : '新建项目' }}
             </h2>
             <button
@@ -702,62 +638,62 @@ export default {
         <div class="p-6 space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="form-label">
+              <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                 标题 (中文)
               </label>
               <input
                 v-model="editingProject.title.zh"
                 type="text"
-                class="form-input"
+                class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
               />
             </div>
             <div>
-              <label class="form-label">
+              <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                 Title (English)
               </label>
               <input
                 v-model="editingProject.title.en"
                 type="text"
-                class="form-input"
+                class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
               />
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label class="form-label">
+              <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                 分类 (中文)
               </label>
               <input
                 v-model="editingProject.category.zh"
                 type="text"
-                class="form-input"
+                class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
               />
             </div>
             <div>
-              <label class="form-label">
+              <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                 Category (English)
               </label>
               <input
                 v-model="editingProject.category.en"
                 type="text"
-                class="form-input"
+                class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
               />
             </div>
             <div>
-              <label class="form-label">
+              <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                 日期
               </label>
               <input
                 v-model="editingProject.date"
                 type="date"
-                class="form-input"
+                class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
               />
             </div>
           </div>
 
           <div>
-            <label class="form-label">
+            <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
               缩略图
             </label>
             <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
@@ -771,7 +707,7 @@ export default {
               <div class="text-center">
                 <label
                   for="thumbnail-input"
-                  class="btn-primary inline-block mb-2 cursor-pointer"
+                  class="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 mb-2 cursor-pointer"
                 >
                   选择或拖拽图片
                 </label>
@@ -783,140 +719,182 @@ export default {
                   v-model="editingProject.thumbnail"
                   type="text"
                   placeholder="或输入图片URL"
-                  class="form-input w-full mt-2 text-sm"
+                  class="w-full mt-2 px-3 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg text-sm"
                 />
               </div>
             </div>
           </div>
 
           <div>
-            <label class="form-label">
+            <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
               标签 (逗号分隔)
             </label>
             <input
                 v-model="tagsInput"
                 @blur="updateTags"
                 type="text"
-                class="form-input"
+                class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
               />
           </div>
 
-          <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h3 class="font-general-semibold text-xl text-gray-800 dark:text-gray-100 mb-4">
-              项目链接 (选填)
+          <div class="border-t border-gray-200 dark:border-secondary-dark pt-6">
+            <h3 class="font-general-semibold text-xl text-ternary-dark dark:text-ternary-light mb-4">
+              客户信息
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="form-label">
-                  项目地址
+                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                  公司名称 (中文)
                 </label>
                 <input
-                  v-model="editingProject.projectUrl"
+                  v-model="editingProject.client.name.zh"
                   type="text"
-                  class="form-input"
-                  placeholder="例如: https://example.com/project"
+                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
                 />
               </div>
               <div>
-                <label class="form-label">
-                  代码网址
+                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                  Company Name (English)
                 </label>
                 <input
-                  v-model="editingProject.codeUrl"
+                  v-model="editingProject.client.name.en"
                   type="text"
-                  class="form-input"
-                  placeholder="例如: https://github.com/username/project"
+                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+                />
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                  服务 (中文)
+                </label>
+                <input
+                  v-model="editingProject.client.services.zh"
+                  type="text"
+                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+                />
+              </div>
+              <div>
+                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                  Services (English)
+                </label>
+                <input
+                  v-model="editingProject.client.services.en"
+                  type="text"
+                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+                />
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                  网站
+                </label>
+                <input
+                  v-model="editingProject.client.website"
+                  type="text"
+                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+                />
+              </div>
+              <div>
+                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                  电话
+                </label>
+                <input
+                  v-model="editingProject.client.phone"
+                  type="text"
+                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
                 />
               </div>
             </div>
           </div>
 
-          <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h3 class="font-general-semibold text-xl text-gray-800 dark:text-gray-100 mb-4">
+          <div class="border-t border-gray-200 dark:border-secondary-dark pt-6">
+            <h3 class="font-general-semibold text-xl text-ternary-dark dark:text-ternary-light mb-4">
               项目目标
             </h3>
             <div class="space-y-4">
               <div>
-                <label class="form-label">
+                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                   目标 (中文)
                 </label>
                 <textarea
                   v-model="editingProject.objective.zh"
                   rows="3"
-                  class="form-input"
+                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
                 ></textarea>
               </div>
               <div>
-                <label class="form-label">
+                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                   Objective (English)
                 </label>
                 <textarea
                   v-model="editingProject.objective.en"
                   rows="3"
-                  class="form-input"
+                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
                 ></textarea>
               </div>
             </div>
           </div>
 
           <div>
-            <label class="form-label">
+            <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
               技术栈 (逗号分隔)
             </label>
             <input
               v-model="technologiesInput"
               @blur="updateTechnologies"
               type="text"
-              class="form-input"
+              class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
             />
           </div>
 
-          <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h3 class="font-general-semibold text-xl text-gray-800 dark:text-gray-100 mb-4">
+          <div class="border-t border-gray-200 dark:border-secondary-dark pt-6">
+            <h3 class="font-general-semibold text-xl text-ternary-dark dark:text-ternary-light mb-4">
               挑战
             </h3>
             <div class="space-y-4">
               <div>
-                <label class="form-label">
+                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                   挑战 (中文)
                 </label>
                 <textarea
                   v-model="editingProject.challenge.zh"
                   rows="3"
-                  class="form-input"
+                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
                 ></textarea>
               </div>
               <div>
-                <label class="form-label">
+                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                   Challenge (English)
                 </label>
                 <textarea
                   v-model="editingProject.challenge.en"
                   rows="3"
-                  class="form-input"
+                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
                 ></textarea>
               </div>
             </div>
           </div>
 
-          <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+          <div class="border-t border-gray-200 dark:border-secondary-dark pt-6">
             <div class="flex justify-between items-center mb-4">
-              <h3 class="font-general-semibold text-xl text-gray-800 dark:text-gray-100">
+              <h3 class="font-general-semibold text-xl text-ternary-dark dark:text-ternary-light">
                 详情段落
               </h3>
               <button
                 @click="addDetail"
-                class="btn-primary px-3 py-1 text-sm"
+                class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
               >
                 <i data-feather="plus" class="w-4 h-4 inline mr-1"></i>
                 添加
               </button>
             </div>
-            <div v-for="(detail, index) in editingProject.details" :key="detail.id" class="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <div v-for="(detail, index) in editingProject.details" :key="detail.id" class="mb-4 p-4 border border-gray-200 dark:border-secondary-dark rounded-lg">
               <div class="flex justify-end mb-2">
                 <button
                   @click="removeDetail(index)"
-                  class="btn-danger px-2 py-1 text-sm"
+                  class="px-2 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
                 >
                   <i data-feather="x" class="w-3 h-3 inline mr-1"></i>
                   移除
@@ -924,47 +902,47 @@ export default {
               </div>
               <div class="space-y-4">
                 <div>
-                  <label class="form-label">
+                  <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                     内容 (中文)
                   </label>
                   <textarea
                     v-model="detail.content.zh"
                     rows="3"
-                    class="form-input"
+                    class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
                   ></textarea>
                 </div>
                 <div>
-                  <label class="form-label">
+                  <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                     Content (English)
                   </label>
                   <textarea
                     v-model="detail.content.en"
                     rows="3"
-                    class="form-input"
+                    class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
                   ></textarea>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+          <div class="border-t border-gray-200 dark:border-secondary-dark pt-6">
             <div class="flex justify-between items-center mb-4">
-              <h3 class="font-general-semibold text-xl text-gray-800 dark:text-gray-100">
+              <h3 class="font-general-semibold text-xl text-ternary-dark dark:text-ternary-light">
                 图片
               </h3>
               <button
                 @click="addImage"
-                class="btn-primary px-3 py-1 text-sm"
+                class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
               >
                 <i data-feather="plus" class="w-4 h-4 inline mr-1"></i>
                 添加
               </button>
             </div>
-            <div v-for="(image, index) in editingProject.images" :key="image.id" class="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <div v-for="(image, index) in editingProject.images" :key="image.id" class="mb-4 p-4 border border-gray-200 dark:border-secondary-dark rounded-lg">
               <div class="flex justify-end mb-2">
                 <button
                   @click="removeImage(index)"
-                  class="btn-danger px-2 py-1 text-sm"
+                  class="px-2 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
                 >
                   <i data-feather="x" class="w-3 h-3 inline mr-1"></i>
                   移除
@@ -972,7 +950,7 @@ export default {
               </div>
               <div class="space-y-4">
                 <div>
-                  <label class="form-label">
+                  <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                     图片
                   </label>
                   <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
@@ -986,7 +964,7 @@ export default {
                     <div class="text-center">
                       <label
                         :for="`project-image-input-${image.id}`"
-                        class="btn-primary inline-block mb-2 cursor-pointer"
+                        class="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 mb-2 cursor-pointer"
                       >
                         选择或拖拽图片
                       </label>
@@ -998,29 +976,29 @@ export default {
                         v-model="image.url"
                         type="text"
                         placeholder="或输入图片URL"
-                        class="form-input w-full mt-2 text-sm"
+                        class="w-full mt-2 px-3 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg text-sm"
                       />
                     </div>
                   </div>
                 </div>
                 <div>
-                  <label class="form-label">
+                  <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                     说明 (中文)
                   </label>
                   <input
                     v-model="image.caption.zh"
                     type="text"
-                    class="form-input"
+                    class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
                   />
                 </div>
                 <div>
-                  <label class="form-label">
+                  <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                     Caption (English)
                   </label>
                   <input
                     v-model="image.caption.en"
                     type="text"
-                    class="form-input"
+                    class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
                   />
                 </div>
               </div>
@@ -1028,28 +1006,28 @@ export default {
           </div>
 
           <div>
-            <label class="form-label">
+            <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
               相关项目 ID (逗号分隔)
             </label>
             <input
               v-model="relatedProjectsInput"
               @blur="updateRelatedProjects"
               type="text"
-              class="form-input"
+              class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
             />
           </div>
         </div>
 
-        <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+        <div class="p-6 border-t border-gray-200 dark:border-secondary-dark flex justify-end gap-3">
           <button
             @click="isProjectModalOpen = false; editingProject = null"
-            class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-300"
+            class="px-6 py-2 border border-gray-300 dark:border-secondary-dark rounded-lg text-ternary-dark dark:text-ternary-light hover:bg-gray-100 dark:hover:bg-secondary-dark"
           >
             取消
           </button>
           <button
             @click="saveProject"
-            class="btn-success"
+            class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
           >
             保存
           </button>
@@ -1057,11 +1035,11 @@ export default {
       </div>
     </div>
 
-    <div v-if="isAboutModalOpen" class="modal-backdrop">
-      <div class="modal-content">
-        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+    <div v-if="isAboutModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-secondary-light dark:bg-ternary-dark rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-gray-200 dark:border-secondary-dark">
           <div class="flex justify-between items-center">
-            <h2 class="font-general-semibold text-2xl text-gray-800 dark:text-gray-100">
+            <h2 class="font-general-semibold text-2xl text-ternary-dark dark:text-ternary-light">
               编辑关于我
             </h2>
             <button
@@ -1075,248 +1053,58 @@ export default {
         
         <div class="p-6 space-y-6">
           <div class="flex justify-between items-center">
-            <h3 class="font-general-semibold text-xl text-gray-800 dark:text-gray-100">
+            <h3 class="font-general-semibold text-xl text-ternary-dark dark:text-ternary-light">
               个人简介段落
             </h3>
             <button
               @click="addBio"
-              class="btn-primary px-3 py-1 text-sm"
+              class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               <i data-feather="plus" class="w-4 h-4 inline mr-1"></i>
               添加段落
             </button>
           </div>
           
-          <div v-for="(bio, index) in aboutMeData.bios" :key="bio.id" class="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+          <div v-for="(bio, index) in aboutMeData.bios" :key="bio.id" class="mb-4 p-4 border border-gray-200 dark:border-secondary-dark rounded-lg">
             <div class="flex justify-end mb-2">
               <button
                 @click="removeBio(index)"
-                class="btn-danger px-2 py-1 text-sm"
+                class="px-2 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
               >
                 <i data-feather="x" class="w-3 h-3 inline mr-1"></i>
                 移除
               </button>
             </div>
-            <div class="space-y-4">
-              <div>
-                <label class="form-label">
-                  段落内容 (中文)
-                </label>
-                <textarea
-                  v-model="bio.bio.zh"
-                  rows="3"
-                  class="form-input"
-                ></textarea>
-              </div>
-              <div>
-                <label class="form-label">
-                  段落内容 (English)
-                </label>
-                <textarea
-                  v-model="bio.bio.en"
-                  rows="3"
-                  class="form-input"
-                ></textarea>
-              </div>
+            <div>
+              <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                段落内容
+              </label>
+              <textarea
+                v-model="bio.bio"
+                rows="5"
+                class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+              ></textarea>
             </div>
           </div>
         </div>
 
-        <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+        <div class="p-6 border-t border-gray-200 dark:border-secondary-dark flex justify-end gap-3">
           <button
             @click="isAboutModalOpen = false"
-            class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors duration-300"
+            class="px-6 py-2 border border-gray-300 dark:border-secondary-dark rounded-lg text-ternary-dark dark:text-ternary-light hover:bg-gray-100 dark:hover:bg-secondary-dark"
           >
             取消
           </button>
           <button
             @click="saveAboutMe"
-            class="btn-success"
+            class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
           >
             保存
           </button>
         </div>
       </div>
     </div>
-
-    <div v-if="activeTab === 'password'">
-      <div class="admin-card p-8">
-        <h3 class="font-general-semibold text-2xl text-gray-800 dark:text-gray-100 mb-6">修改密码</h3>
-        
-        <div v-if="passwordMessage" :class="[
-          'mb-4 p-4 rounded-lg',
-          passwordSuccess ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' : 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200'
-        ]">
-          {{ passwordMessage }}
-        </div>
-        
-        <div class="space-y-6">
-          <div>
-            <label class="form-label">
-              旧密码
-            </label>
-            <input
-              v-model="oldPassword"
-              type="password"
-              class="form-input"
-              placeholder="请输入旧密码"
-            />
-          </div>
-          
-          <div>
-            <label class="form-label">
-              新密码
-            </label>
-            <input
-              v-model="newPassword"
-              type="password"
-              class="form-input"
-              placeholder="请输入新密码"
-            />
-          </div>
-          
-          <div>
-            <label class="form-label">
-              确认新密码
-            </label>
-            <input
-              v-model="confirmPassword"
-              type="password"
-              class="form-input"
-              placeholder="请再次输入新密码"
-            />
-          </div>
-          
-          <div class="pt-4">
-            <button
-              @click="changePassword"
-              class="btn-success px-6 py-3 w-full"
-            >
-              <i data-feather="save" class="w-4 h-4 inline mr-2"></i>
-              修改密码
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
-<style scoped>
-/* 自定义样式 */
-.admin-container {
-  @apply min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300;
-}
-
-/* 头部样式 */
-.admin-header {
-  @apply bg-white dark:bg-gray-800 shadow-sm;
-}
-
-/* 按钮样式优化 */
-.btn-primary {
-  @apply px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 font-medium inline-flex items-center gap-2;
-}
-
-.btn-secondary {
-  @apply px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-300 font-medium inline-flex items-center gap-2;
-}
-
-.btn-success {
-  @apply px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors duration-300 font-medium inline-flex items-center gap-2;
-}
-
-.btn-danger {
-  @apply px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors duration-300 font-medium inline-flex items-center gap-2;
-}
-
-.btn-warning {
-  @apply px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors duration-300 font-medium inline-flex items-center gap-2;
-}
-
-/* 卡片样式 */
-.admin-card {
-  @apply bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-md;
-}
-
-/* 表格样式 */
-.admin-table {
-  @apply w-full border-collapse;
-}
-
-.admin-table th {
-  @apply px-6 py-4 text-left font-semibold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800;
-}
-
-.admin-table td {
-  @apply px-6 py-4 text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700;
-}
-
-.admin-table tr:hover {
-  @apply bg-gray-50 dark:bg-gray-800;
-}
-
-/* 标签页样式 */
-.admin-tab {
-  @apply px-4 py-2 font-medium rounded-t-lg transition-colors duration-300;
-}
-
-.admin-tab-active {
-  @apply bg-indigo-600 text-white;
-}
-
-.admin-tab-inactive {
-  @apply text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800;
-}
-
-/* 表单元素样式 */
-.form-input {
-  @apply w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent;
-}
-
-.form-label {
-  @apply block font-medium text-gray-700 dark:text-gray-300 mb-2;
-}
-
-/* 徽章样式 */
-.badge {
-  @apply px-2 py-1 text-xs rounded-full font-medium;
-}
-
-.badge-success {
-  @apply bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200;
-}
-
-.badge-warning {
-  @apply bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200;
-}
-
-/* 加载状态 */
-.loading-spinner {
-  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600;
-}
-
-/* 模态框样式 */
-.modal-backdrop {
-  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4;
-}
-
-.modal-content {
-  @apply bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto;
-}
-
-/* 响应式调整 */
-@media (max-width: 768px) {
-  .admin-container {
-    @apply p-2;
-  }
-  
-  .admin-header {
-    @apply flex-col gap-4 pb-4;
-  }
-  
-  .admin-tab {
-    @apply px-3 py-1.5 text-sm;
-  }
-}
-</style>
+<style scoped></style>

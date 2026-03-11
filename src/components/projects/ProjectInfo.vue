@@ -30,10 +30,8 @@ export default {
 					>
 						<span class="font-semibold mb-1 sm:mb-0 sm:min-w-[100px]">{{ info.title }}:</span>
 						<a
-							v-if="info.title === '项目地址' || info.title === '代码网址' || info.title === 'Website' || info.title === 'Phone'"
-							:href="info.title === 'Phone' ? `tel:${info.details}` : info.details"
-							target="_blank"
-							rel="noopener noreferrer"
+							v-if="info.title === 'Website' || info.title === 'Phone'"
+							:href="info.title === 'Website' ? info.details : `tel:${info.details}`"
 							class="hover:underline cursor-pointer text-blue-600 dark:text-blue-400 break-all"
 							aria-label="Project Link"
 						>

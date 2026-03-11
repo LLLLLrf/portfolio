@@ -49,25 +49,39 @@ export default {
       if (!this.project) return {};
       const projectInfo = {};
 
-      // 项目链接卡片（选填）
-      const projectLinks = [];
-      if (this.project.projectUrl) {
-        projectLinks.push({
+      // 客户信息板块
+      const clientInfos = [];
+      if (this.project.client?.name) {
+        clientInfos.push({
           id: 1,
-          title: '项目地址',
-          details: this.project.projectUrl
+          title: 'Name',
+          details: this.t(this.project.client.name)
         });
       }
-      if (this.project.codeUrl) {
-        projectLinks.push({
+      if (this.project.client?.services) {
+        clientInfos.push({
           id: 2,
-          title: '代码网址',
-          details: this.project.codeUrl
+          title: 'Services',
+          details: this.t(this.project.client.services)
         });
       }
-      if (projectLinks.length > 0) {
-        projectInfo.clientHeading = '项目链接';
-        projectInfo.companyInfos = projectLinks;
+      if (this.project.client?.website) {
+        clientInfos.push({
+          id: 3,
+          title: 'Website',
+          details: this.project.client.website
+        });
+      }
+      if (this.project.client?.phone) {
+        clientInfos.push({
+          id: 4,
+          title: 'Phone',
+          details: this.project.client.phone
+        });
+      }
+      if (clientInfos.length > 0) {
+        projectInfo.clientHeading = 'About Client';
+        projectInfo.companyInfos = clientInfos;
       }
 
       // 项目目标板块
