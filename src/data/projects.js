@@ -1,43 +1,59 @@
-// Projects data.
-// Note: Here we are getting data from a js file, but in a different project I'll be fetching these projects from some srt of APIs.
-
-const projects = [
-	{
-		id: 1,
-		title: 'Google Health Platform',
-		category: 'Web Application',
-		img: require('@/assets/images/web-project-2.jpg'),
-	},
-	{
-		id: 2,
-		title: 'Phoenix Digital Agency',
-		category: 'Mobile Application',
-		img: require('@/assets/images/mobile-project-2.jpg'),
-	},
-	{
-		id: 3,
-		title: 'Project Management UI',
-		category: 'UI/UX Design',
-		img: require('@/assets/images/ui-project-1.jpg'),
-	},
-	{
-		id: 4,
-		title: 'Cloud Storage Platform',
-		category: 'UI/UX Design',
-		img: require('@/assets/images/ui-project-2.jpg'),
-	},
-	{
-		id: 5,
-		title: 'React Social App',
-		category: 'Mobile Application',
-		img: require('@/assets/images/mobile-project-1.jpg'),
-	},
-	{
-		id: 6,
-		title: 'Apple Design System',
-		category: 'Web Application',
-		img: require('@/assets/images/web-project-1.jpg'),
-	},
-];
-
-export default projects;
+export default [
+  {
+    id: 8,
+    title: {
+      zh: "测试图片项目 1",
+      en: "Test Image Project 1"
+    },
+    category: {
+      zh: "测试",
+      en: "Test"
+    },
+    thumbnail: "data:image/png;base64,/9j/4Rk4RXhpZgAATU0AKgAAAAgADAEAAAMAAAABEAAAAAEBAAMAAAABC/4AAAECAAMAAAADAAAAngEGAAMAAAABAAIAAAESAAMAAAABAAEAAAEVAAMAAAABAAMAAAEaAAUAAAABAAAApAEbAAUAAAABAAAArAEoAAMAAAABAAIAAAExAAIAAAAfAAAAtAEyAAIAAAAUAAAA04dpAAQAAAABAAAA6AAAASAACAAIAAgACvyAAAAnEAAK/IAAACcQQWRvYmUgUGhvdG9zaG9wIDIxLjIgKFdpbmRvd3MpADIwMjQ6MTA6MDYgMTg6NDE6MTQAAAAEkAAABwAAAAQwMjMxoAEAAwAAAAEAAQAAoAIABAAAAAEAABAAoAMABAAAAAEAAAv+AAAAAAAAAAYBAwADAAAAAQAGAAABGgAFAAAAAQAAAW4BGwAFAAAAAQAAAXYBKAADAAAAAQACAAACAQAEAAAAAQAAAX4CAgAEAAAAAQAAF7IAAAAAAAAASAAAAAEAAABIAAAAAf/Y/+0ADEFkb2JlX0NNAAH/7gAOQWRvYmUAZIAAAAAB/9sAhAAMCAgICQgMCQkMEQsKCxEVDwwMDxUYExMVExMYEQwMDAwMDBEMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAQ0LCw0ODRAODhAUDg4OFBQODg4OFBEMDAwMDBERDAwMDAwMEQwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAB4AKADASIAAhEBAxEB/90ABAAK/8QBPwAAAQUBAQEBAQEAAAAAAAAAAwABAgQFBgcICQoLAQABBQEBAQEBAQAAAAAAAAABAAIDBAUGBwgJCgsQAAEEAQMCBAIFBwYIBQMMMwEAAhEDBCESMQVBUWETInGBMgYUkaGxQiMkFVLBYjM0coLRQwclklPw4fFjczUWorKDJkSTVGRFwqN0NhfSVeJl8rOEw9N14/NGJ5SkhbSVxNTk9KW1xdXl9VZmdoaWprbG1ub2N0dXZ3eHl6e3x9fn9xEAAgIBAgQEAwQFBgcHBgU1AQACEQMhMRIEQVFhcSITBTKBkRShsUIjwVLR8DMkYuFygpJDUxVjczTxJQYWorKDByY1wtJEk1SjF2RFVTZ0ZeLys4TD03Xj80aUpIW0lcTU5PSltcXV5fVWZnaGlqa2xtbm9ic3R1dnd4eXp7fH/9oADAMBAAIRAxEAPwDz142gem2R3adYnz0UK2sc4Nc4NjWe6vW9P6jVSbrKvUYwDe6l7bNoB2gv2b9rX7vZtVIuDnyNYPDuR+RCJBBog+INsAv+1ewAO00aZiUNxM6cd/JG3OMscWCY0GpVjp2HZfkenVaxr4c703bmizZ+lroL2ln9ItYypnvYjsuEu7nxsIOhB4B1Tvc0kbW7R3nUD5f+QR8nFdTbY20Na5pPsG4bXE++j9L+k9THefSsY7/wRBBndujdzzCKrRlv7vfiEi0thxI4Bjvr4/nNUmVv5jT8vwRRRkODjtDgyHl0idSGz74c/wDspJsd0G1s6H4fNO6NC3t8ka9ljTLmenCPUDAZDRJEuaHPdX/bUqaDkMIDmh9bQK2tALrC54Z6Ycwfpbff7N35iSra20n2gSR4cpTpMx4/FXKOk9RtsfVVSXX1N3uo3NbdEF8147y26za1vuYxnqJXdN6pVS267FyGUkb2PdW/ZBG7e123Z9BK1X9WoGkyBJjlOQdZEGJRK7agAASOTM+Pdmm5ReXnXTWeB4f70ka3siaCpEbePwThswCY8zoPvTmGieUksDzCI1xA/vUWgmAIIPPgEbZMAD3eCRQSGx0/Mfiueaq2ve8ASQCWgHdvrdHqV3M/MtZ9BbNd2OXNyBa6m+lgDqZN7XtO0N/WHN2t9X/Rv/m1zzPa4kiQFsYWP1XMdj0sLbKNPSY4zUwH3PbZs/SfRZ/xigyY4XxHTv8A[... 6419950 chars omitted ...]
+    ],
+    "date": "2024-02-09",
+    "tags": [
+      "Test",
+      "Machine Learning",
+      "Artificial Intelligence",
+      "Product Management"
+    ],
+    "client": {
+      "name": {
+        "zh": "",
+        "en": ""
+      },
+      "services": {
+        "zh": "",
+        "en": ""
+      },
+      "website": "",
+      "phone": ""
+    },
+    "objective": {
+      "zh": "测试图片上传",
+      "en": "Test Image Upload"
+    },
+    "technologies": [
+      "Vue.js",
+      "Electron",
+      "React",
+      "Javascript"
+    ],
+    "challenge": {
+      "zh": "挑战是",
+      "en": "The challenge is"
+    },
+    "details": [
+      {
+        "id": 1772705140060,
+        "content": {
+          "zh": "这是一个详细段落",
+          "en": "This is a detailed paragraph"
+        }
+      }
+    ],
+    "images": [
+      {
+        "id": 1772705134641,
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAAH0CAIAAABEtEjdAAAACXBIWXMAABcRAAAfEQHKJv/AAAgAElEQVR4nOy9d5Qk2Vnfi383IiN9VXtTd4t3Mz093iMkIYQQSAgEYjFgbBiWxcKyD4sF8sF6YIAXYGHZwLJhAQkQyAghhMdjZqTpaN9dVV3lIzMi7r3fH/fGvZkz59y4Mauququ7q+7vnDlnTkZG3Iy7d+733W+ZaK2RkZGRkZGxNNm7d29GRkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdkZGRkZCw9sk83RkZGRkbG0iP7dGdk
