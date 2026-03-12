@@ -107,22 +107,20 @@ export const apiService = {
   },
 
   async getProjectsLocal() {
-    // 优先从 localStorage 读取用户编辑的数据
-    const stored = localStorage.getItem('portfolio_projects');
-    if (stored) {
-      try {
-        const data = JSON.parse(stored);
-        if (data && data.length > 0) {
-          console.log('Loaded projects from localStorage');
-          return data;
-        }
-      } catch (error) {
-        console.error('Error parsing localStorage projects:', error);
+    // 直接从静态文件读取数据，不从 localStorage 读取
+    // 这样可以确保显示的是服务器上的最新静态数据
+    try {
+      // 尝试从 src/data 目录加载静态数据文件
+      const staticData = await import('@/data/projects.js');
+      if (staticData && staticData.default) {
+        console.log('Loaded projects from static file');
+        return staticData.default;
       }
+    } catch (error) {
+      console.error('Failed to load static projects data:', error);
     }
     
-    // 如果没有 localStorage 数据，使用默认项目
-    console.log('Using default projects');
+    // 如果静态文件加载失败，返回默认数据
     return this.getDefaultProjects();
   },
 
@@ -344,17 +342,25 @@ export const apiService = {
         if (!response.ok) throw new Error('Failed to fetch');
         return await response.json();
       } catch (error) {
-        console.warn('Backend failed, falling back to localStorage');
+        console.warn('Backend failed, falling back to static file');
       }
     }
-    return this.getAboutMeLocal();
+    return await this.getAboutMeLocal();
   },
 
-  getAboutMeLocal() {
-    const stored = localStorage.getItem(STORAGE_KEY_ABOUT_ME);
-    if (stored) {
-      return JSON.parse(stored);
+  async getAboutMeLocal() {
+    // 直接从静态文件读取数据，不从 localStorage 读取
+    try {
+      const staticData = await import('@/data/about.js');
+      if (staticData && staticData.default) {
+        console.log('Loaded about data from static file');
+        return staticData.default;
+      }
+    } catch (error) {
+      console.error('Failed to load static about data:', error);
     }
+    
+    // 如果静态文件加载失败，返回默认数据
     return {
       bios: [
         {
