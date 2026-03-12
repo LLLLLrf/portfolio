@@ -107,22 +107,23 @@ export const apiService = {
   },
 
   async getProjectsLocal() {
-    // 优先从静态文件读取数据，而不是 localStorage
-    // 这样可以确保在没有后端的情况下也能显示最新的项目数据
-    try {
-      // 尝试从 src/data 目录加载静态数据文件
-      const staticData = await import('@/data/projects.js');
-      if (staticData && staticData.default) {
-        console.log('Loaded projects from static file');
-        return staticData.default;
+    // 优先从 localStorage 读取用户编辑的数据
+    const stored = localStorage.getItem('portfolio_projects');
+    if (stored) {
+      try {
+        const data = JSON.parse(stored);
+        if (data && data.length > 0) {
+          console.log('Loaded projects from localStorage');
+          return data;
+        }
+      } catch (error) {
+        console.error('Error parsing localStorage projects:', error);
       }
-    } catch (error) {
-      console.log('Failed to load static projects data, falling back to localStorage');
     }
     
-    // 如果静态文件加载失败，回退到 localStorage
-    const stored = localStorage.getItem('portfolio_projects');
-    return stored ? JSON.parse(stored) : this.getDefaultProjects();
+    // 如果没有 localStorage 数据，使用默认项目
+    console.log('Using default projects');
+    return this.getDefaultProjects();
   },
 
   getDefaultProjects() {
