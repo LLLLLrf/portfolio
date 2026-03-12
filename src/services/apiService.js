@@ -129,15 +129,13 @@ export const apiService = {
     // 直接从后端数据文件读取，不从 localStorage 读取
     // 这样可以确保显示的是服务器上的最新静态数据
     try {
-      // 在生产环境，从 dist/data/projects.json 读取
-      // 在开发环境，从 data/projects.json 读取
-      const isDev = process.env.NODE_ENV === 'development';
-      const dataPath = isDev ? '../data/projects.json' : '/data/projects.json';
-      
-      const staticData = await import(dataPath);
-      if (staticData && staticData.default) {
+      // 使用 fetch 读取 JSON 文件，添加时间戳避免缓存
+      const timestamp = Date.now();
+      const response = await fetch(`/data/projects.json?t=${timestamp}`);
+      if (response.ok) {
+        const data = await response.json();
         console.log('Loaded projects from static file');
-        return staticData.default;
+        return data;
       }
     } catch (error) {
       console.error('Failed to load static projects data:', error);

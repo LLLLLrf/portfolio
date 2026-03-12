@@ -1,4 +1,5 @@
 const { defineConfig } = require('@vue/cli-service');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = defineConfig({
   transpileDependencies: true,
@@ -14,19 +15,26 @@ module.exports = defineConfig({
       '/uploads': {
         target: 'http://localhost:3002',
         changeOrigin: true
+      },
+      '/data': {
+        target: 'http://localhost:3002',
+        changeOrigin: true
       }
     }
   },
-  chainWebpack: config => {
-    config.plugin('copy').tap(args => {
-      args[0].patterns.push({
-        from: 'data',
-        to: 'data',
-        globOptions: {
-          ignore: ['**/*.gitkeep']
-        }
-      });
-      return args;
-    });
+  configureWebpack: {
+    plugins: [
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: 'data',
+            to: 'data',
+            globOptions: {
+              ignore: ['**/*.gitkeep']
+            }
+          }
+        ]
+      })
+    ]
   }
 });
