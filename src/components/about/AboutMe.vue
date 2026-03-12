@@ -14,6 +14,13 @@ export default {
 	},
 	async mounted() {
 		this.aboutMeData = await apiService.getAboutMe();
+	},
+	methods: {
+		formatText(text) {
+			if (!text) return '';
+			// 处理加粗格式 **text**
+			return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+		}
 	}
 };
 </script>
@@ -36,8 +43,8 @@ export default {
 					v-for="bio in aboutMeData.bios"
 					:key="bio.id"
 					class="font-general-regular mb-4 text-ternary-dark dark:text-ternary-light text-lg"
+					v-html="formatText(t(bio.bio))"
 				>
-					{{ t(bio.bio) }}
 				</p>
 			</div>
 			<div v-else class="text-gray-500 dark:text-gray-400">加载中...</div>

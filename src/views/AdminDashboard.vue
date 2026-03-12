@@ -58,15 +58,15 @@ export default {
       immediate: true
     }
   },
-  mounted() {
+  async mounted() {
     if (!apiService.isAuthenticated()) {
       this.router.push('/admin/login');
       return;
     }
-    this.checkBackend();
-    this.loadProjects();
-    this.loadAboutMe();
-    this.loadResumes();
+    await this.checkBackend();
+    await this.loadProjects();
+    await this.loadAboutMe();
+    await this.loadResumes();
     feather.replace();
   },
   methods: {
@@ -85,8 +85,8 @@ export default {
     async loadProjects() {
       this.projects = await apiService.getProjects();
     },
-    loadAboutMe() {
-      this.aboutMeData = apiService.getAboutMe();
+    async loadAboutMe() {
+      this.aboutMeData = await apiService.getAboutMe();
     },
     async loadResumes() {
       const config = await apiService.getResumes();
@@ -196,29 +196,21 @@ export default {
       this.editingProject.images.splice(index, 1);
     },
     
-    async handleThumbnailUpload(event) {
+    handleThumbnailUpload(event) {
       const file = event.target.files[0];
       if (file) {
-        try {
-          const result = await apiService.uploadImage(file);
-          this.editingProject.thumbnail = result.url;
-        } catch (error) {
-          alert('图片上传失败，请重试');
-          console.error('Thumbnail upload error:', error);
-        }
+        this.convertFileToBase64(file).then(base64 => {
+          this.editingProject.thumbnail = base64;
+        });
       }
     },
     
-    async handleProjectImageUpload(event, index) {
+    handleProjectImageUpload(event, index) {
       const file = event.target.files[0];
       if (file) {
-        try {
-          const result = await apiService.uploadImage(file);
-          this.editingProject.images[index].url = result.url;
-        } catch (error) {
-          alert('图片上传失败，请重试');
-          console.error('Image upload error:', error);
-        }
+        this.convertFileToBase64(file).then(base64 => {
+          this.editingProject.images[index].url = base64;
+        });
       }
     },
     
@@ -231,20 +223,36 @@ export default {
       });
     },
 
-    openAboutEdit() {
-      this.aboutMeData = apiService.getAboutMe();
+    async openAboutEdit() {
+      await this.loadAboutMe();
       this.isAboutModalOpen = true;
     },
 
     addBio() {
       this.aboutMeData.bios.push({
         id: Date.now(),
-        bio: ''
+        bio: { zh: '', en: '' }
       });
     },
 
     removeBio(index) {
       this.aboutMeData.bios.splice(index, 1);
+    },
+
+    toggleBold(bioObj, lang) {
+      // 简化的加粗功能：在文本末尾添加 ** ** 作为示例
+      // 实际项目中可以使用更复杂的编辑器库
+      if (!bioObj[lang]) {
+        bioObj[lang] = '**加粗文本**';
+      } else {
+        bioObj[lang] += ' **加粗文本**';
+      }
+    },
+    
+    formatText(text) {
+      if (!text) return '';
+      // 处理加粗格式 **text**
+      return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     },
 
     saveAboutMe() {
@@ -278,6 +286,29 @@ export default {
     async setCurrentResume(id) {
       await apiService.setCurrentResume(id);
       await this.loadResumes();
+    },
+
+    async resetProjectIds() {
+      if (confirm('确定要重置所有项目 ID 吗？这将会按照当前项目列表的顺序重新分配 ID（从 1 开始）。')) {
+        try {
+          // 重新排序项目 ID
+          const updatedProjects = this.projects.map((project, index) => ({
+            ...project,
+            id: index + 1
+          }));
+          
+          // 批量保存所有项目
+          await apiService.saveAllProjects(updatedProjects);
+          
+          // 重新加载项目列表
+          await this.loadProjects();
+          
+          alert('项目 ID 已重置成功！');
+        } catch (error) {
+          console.error('Reset project IDs error:', error);
+          alert('重置项目 ID 失败，请重试');
+        }
+      }
     },
 
     async saveResumeAlias() {
@@ -414,10 +445,23 @@ export default {
         </button>
       </div>
 
+      <div class="mb-4 flex justify-between items-center">
+        <h3 class="font-general-semibold text-xl text-ternary-dark dark:text-ternary-light">项目列表</h3>
+        <button
+          @click="resetProjectIds"
+          class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm inline-flex items-center gap-2"
+          title="删除项目后重新排序 ID"
+        >
+          <i data-feather="refresh-cw" class="w-4 h-4"></i>
+          重置所有项目 ID
+        </button>
+      </div>
+      
       <div class="bg-secondary-light dark:bg-ternary-dark rounded-xl shadow-lg overflow-hidden">
         <table class="w-full">
           <thead class="bg-primary-light dark:bg-secondary-dark">
             <tr>
+              <th class="px-6 py-4 text-left font-general-semibold text-ternary-dark dark:text-ternary-light">ID</th>
               <th class="px-6 py-4 text-left font-general-semibold text-ternary-dark dark:text-ternary-light">项目标题</th>
               <th class="px-6 py-4 text-left font-general-semibold text-ternary-dark dark:text-ternary-light">分类</th>
               <th class="px-6 py-4 text-left font-general-semibold text-ternary-dark dark:text-ternary-light">日期</th>
@@ -426,6 +470,9 @@ export default {
           </thead>
           <tbody>
             <tr v-for="project in projects" :key="project.id" class="border-t border-gray-200 dark:border-secondary-dark">
+              <td class="px-6 py-4 text-ternary-dark dark:text-ternary-light font-mono">
+                {{ project.id }}
+              </td>
               <td class="px-6 py-4 text-ternary-dark dark:text-ternary-light">
                 {{ t(project.title) }}
               </td>
@@ -471,7 +518,14 @@ export default {
       <div class="bg-secondary-light dark:bg-ternary-dark rounded-xl shadow-lg p-6">
         <h3 class="font-general-semibold text-xl text-ternary-dark dark:text-ternary-light mb-4">当前关于我内容</h3>
         <div v-for="bio in aboutMeData?.bios" :key="bio.id" class="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <p class="text-ternary-dark dark:text-ternary-light">{{ bio.bio }}</p>
+          <div class="mb-2">
+            <h4 class="font-general-medium text-lg text-ternary-dark dark:text-ternary-light mb-1">中文</h4>
+            <p class="text-ternary-dark dark:text-ternary-light" v-html="formatText(bio.bio?.zh)"></p>
+          </div>
+          <div>
+            <h4 class="font-general-medium text-lg text-ternary-dark dark:text-ternary-light mb-1">English</h4>
+            <p class="text-ternary-dark dark:text-ternary-light" v-html="formatText(bio.bio?.en)"></p>
+          </div>
         </div>
       </div>
     </div>
@@ -1083,15 +1137,45 @@ export default {
                 移除
               </button>
             </div>
-            <div>
-              <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
-                段落内容
-              </label>
-              <textarea
-                v-model="bio.bio"
-                rows="5"
-                class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
-              ></textarea>
+            <div class="space-y-4">
+              <div>
+                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                  段落内容 (中文)
+                </label>
+                <div class="flex gap-2 mb-2">
+                  <button
+                    @click="toggleBold(bio.bio, 'zh')"
+                    class="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+                  >
+                    <i data-feather="bold" class="w-4 h-4"></i>
+                  </button>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">使用 **文本** 格式添加加粗</span>
+                </div>
+                <textarea
+                  v-model="bio.bio.zh"
+                  rows="3"
+                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+                ></textarea>
+              </div>
+              <div>
+                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                  段落内容 (English)
+                </label>
+                <div class="flex gap-2 mb-2">
+                  <button
+                    @click="toggleBold(bio.bio, 'en')"
+                    class="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+                  >
+                    <i data-feather="bold" class="w-4 h-4"></i>
+                  </button>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">Use **text** format for bold</span>
+                </div>
+                <textarea
+                  v-model="bio.bio.en"
+                  rows="3"
+                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+                ></textarea>
+              </div>
             </div>
           </div>
         </div>

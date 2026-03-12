@@ -95,6 +95,30 @@ export const apiService = {
     return this.saveProjectLocal(project);
   },
 
+  async saveAllProjects(projects) {
+    const backendAvailable = await this.checkBackendAvailable();
+    if (backendAvailable) {
+      try {
+        console.log('Saving all projects to backend');
+        const response = await fetch(`${API_BASE_URL}/projects`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(projects),
+        });
+        if (!response.ok) throw new Error('Failed to save');
+        const result = await response.json();
+        console.log('All projects saved to backend');
+        return result;
+      } catch (error) {
+        console.warn('Backend failed, falling back to localStorage:', error);
+      }
+    }
+    console.log('Saving all projects to localStorage');
+    return this.saveAllProjectsLocal(projects);
+  },
+
   async deleteProject(id) {
     const backendAvailable = await this.checkBackendAvailable();
     if (backendAvailable) {
@@ -325,6 +349,11 @@ export const apiService = {
     }
     localStorage.setItem('portfolio_projects', JSON.stringify(projects));
     return project;
+  },
+
+  saveAllProjectsLocal(projects) {
+    localStorage.setItem('portfolio_projects', JSON.stringify(projects));
+    return true;
   },
 
   deleteProjectLocal(id) {

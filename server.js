@@ -337,6 +337,23 @@ app.post('/api/projects', (req, res) => {
   }
 });
 
+app.put('/api/projects', (req, res) => {
+  if (!API_ENABLED) {
+    return res.status(403).json({ error: 'API disabled' });
+  }
+  const projects = req.body;
+  
+  if (!Array.isArray(projects)) {
+    return res.status(400).json({ error: 'Invalid data format' });
+  }
+  
+  if (saveProjects(projects)) {
+    res.json({ success: true });
+  } else {
+    res.status(500).json({ error: 'Failed to save projects' });
+  }
+});
+
 app.delete('/api/projects/:id', (req, res) => {
   if (!API_ENABLED) {
     return res.status(403).json({ error: 'API disabled' });
