@@ -34,7 +34,7 @@ export const apiService = {
         console.warn('Backend failed, falling back to localStorage');
       }
     }
-    return this.getProjectsLocal();
+    return await this.getProjectsLocal();
   },
 
   async getProject(id) {
@@ -48,7 +48,7 @@ export const apiService = {
         console.warn('Backend failed, falling back to localStorage');
       }
     }
-    const projects = this.getProjectsLocal();
+    const projects = await this.getProjectsLocal();
     return projects.find(p => p.id === parseInt(id));
   },
 
@@ -106,7 +106,21 @@ export const apiService = {
     return this.resetDataLocal();
   },
 
-  getProjectsLocal() {
+  async getProjectsLocal() {
+    // 优先从静态文件读取数据，而不是 localStorage
+    // 这样可以确保在没有后端的情况下也能显示最新的项目数据
+    try {
+      // 尝试从 src/data 目录加载静态数据文件
+      const staticData = await import('@/data/projects.js');
+      if (staticData && staticData.default) {
+        console.log('Loaded projects from static file');
+        return staticData.default;
+      }
+    } catch (error) {
+      console.log('Failed to load static projects data, falling back to localStorage');
+    }
+    
+    // 如果静态文件加载失败，回退到 localStorage
     const stored = localStorage.getItem('portfolio_projects');
     return stored ? JSON.parse(stored) : this.getDefaultProjects();
   },
