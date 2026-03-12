@@ -291,14 +291,29 @@ export default {
     async resetProjectIds() {
       if (confirm('确定要重置所有项目 ID 吗？这将会按照当前项目列表的顺序重新分配 ID（从 1 开始）。')) {
         try {
+          const backendAvailable = await apiService.checkBackendAvailable();
+          
+          if (!backendAvailable) {
+            alert('请启动后端服务器后再重置项目 ID，因为数据量较大无法保存到本地存储');
+            return;
+          }
+          
           // 重新排序项目 ID
           const updatedProjects = this.projects.map((project, index) => ({
             ...project,
             id: index + 1
           }));
           
-          // 批量保存所有项目
-          await apiService.saveAllProjects(updatedProjects);
+          // 批量保存所有项目到后端
+          const response = await fetch('http://localhost:3002/api/projects', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updatedProjects),
+          });
+          
+          if (!response.ok) throw new Error('Failed to save projects');
           
           // 重新加载项目列表
           await this.loadProjects();
