@@ -14,9 +14,14 @@ const ABOUT_FILE = path.join(__dirname, 'data', 'about.json');
 const CV_DIR = path.join(__dirname, 'public', 'files', 'cv');
 const CV_CONFIG_FILE = path.join(CV_DIR, 'config.json');
 const DATA_DIR = path.dirname(DATA_FILE);
+const UPLOAD_DIR = path.join(__dirname, 'public', 'uploads');
 
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
 const defaultProjects = [
@@ -375,6 +380,35 @@ app.post('/api/about', (req, res) => {
   }
 });
 
+const imageStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    if (!fs.existsSync(UPLOAD_DIR)) {
+      fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    }
+    cb(null, UPLOAD_DIR);
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  }
+});
+
+const imageUpload = multer({ 
+  storage: imageStorage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedTypes.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid image file type'), false);
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+
 const cvStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     if (!fs.existsSync(CV_DIR)) {
@@ -463,6 +497,22 @@ app.get('/api/resumes', (req, res) => {
   }
   
   res.json(config);
+});
+
+app.post('/api/upload/image', imageUpload.single('image'), (req, res) => {
+  if (!API_ENABLED) {
+    return res.status(403).json({ error: 'API disabled' });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+  
+  const imageUrl = `/uploads/${req.file.filename}`;
+  res.json({
+    success: true,
+    url: imageUrl,
+    filename: req.file.filename
+  });
 });
 
 app.post('/api/resumes/upload', cvUpload.single('resume'), (req, res) => {

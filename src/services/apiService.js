@@ -4,6 +4,25 @@ const STORAGE_KEY_ABOUT_ME = 'portfolio_about_me';
 const STORAGE_KEY_RESUMES = 'portfolio_resumes';
 
 export const apiService = {
+  async uploadImage(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/upload/image`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) throw new Error('Upload failed');
+      
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Image upload error:', error);
+      throw error;
+    }
+  },
   async checkBackendAvailable() {
     try {
       const response = await fetch(`${API_BASE_URL}/health`, {
@@ -107,11 +126,15 @@ export const apiService = {
   },
 
   async getProjectsLocal() {
-    // 直接从静态文件读取数据，不从 localStorage 读取
+    // 直接从后端数据文件读取，不从 localStorage 读取
     // 这样可以确保显示的是服务器上的最新静态数据
     try {
-      // 尝试从 src/data 目录加载静态数据文件
-      const staticData = await import('@/data/projects.js');
+      // 在生产环境，从 dist/data/projects.json 读取
+      // 在开发环境，从 data/projects.json 读取
+      const isDev = process.env.NODE_ENV === 'development';
+      const dataPath = isDev ? '../data/projects.json' : '/data/projects.json';
+      
+      const staticData = await import(dataPath);
       if (staticData && staticData.default) {
         console.log('Loaded projects from static file');
         return staticData.default;

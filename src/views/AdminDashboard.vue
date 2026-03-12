@@ -196,21 +196,29 @@ export default {
       this.editingProject.images.splice(index, 1);
     },
     
-    handleThumbnailUpload(event) {
+    async handleThumbnailUpload(event) {
       const file = event.target.files[0];
       if (file) {
-        this.convertFileToBase64(file).then(base64 => {
-          this.editingProject.thumbnail = base64;
-        });
+        try {
+          const result = await apiService.uploadImage(file);
+          this.editingProject.thumbnail = result.url;
+        } catch (error) {
+          alert('图片上传失败，请重试');
+          console.error('Thumbnail upload error:', error);
+        }
       }
     },
     
-    handleProjectImageUpload(event, index) {
+    async handleProjectImageUpload(event, index) {
       const file = event.target.files[0];
       if (file) {
-        this.convertFileToBase64(file).then(base64 => {
-          this.editingProject.images[index].url = base64;
-        });
+        try {
+          const result = await apiService.uploadImage(file);
+          this.editingProject.images[index].url = result.url;
+        } catch (error) {
+          alert('图片上传失败，请重试');
+          console.error('Image upload error:', error);
+        }
       }
     },
     
