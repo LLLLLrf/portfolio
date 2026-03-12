@@ -90,7 +90,7 @@ export default {
 				<h2 class="font-general-bold text-primary-dark dark:text-primary-light text-2xl md:text-3xl mb-6 md:mb-8">
 					{{ projectInfo.challengeHeading }}
 				</h2>
-				<p class="font-general-regular text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+				<p class="font-general-regular text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
 					{{ projectInfo.challengeDetails }}
 				</p>
 			</div>
@@ -104,7 +104,7 @@ export default {
 					<p
 						v-for="projectDetail in projectInfo.projectDetails"
 						:key="projectDetail.id"
-						class="font-general-regular text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed"
+						class="font-general-regular text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line"
 					>
 						{{ projectDetail.details }}
 					</p>
