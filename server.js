@@ -532,6 +532,25 @@ app.post('/api/upload/image', imageUpload.single('image'), (req, res) => {
   });
 });
 
+app.delete('/api/upload/image', (req, res) => {
+  if (!API_ENABLED) {
+    return res.status(403).json({ error: 'API disabled' });
+  }
+  
+  const { filename } = req.body;
+  if (!filename) {
+    return res.status(400).json({ error: 'Filename required' });
+  }
+  
+  const filePath = path.join(UPLOAD_DIR, filename);
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+    res.json({ success: true });
+  } else {
+    res.status(404).json({ error: 'File not found' });
+  }
+});
+
 app.post('/api/resumes/upload', cvUpload.single('resume'), (req, res) => {
   if (!API_ENABLED) {
     return res.status(403).json({ error: 'API disabled' });

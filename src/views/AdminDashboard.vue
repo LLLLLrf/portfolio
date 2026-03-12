@@ -192,35 +192,51 @@ export default {
       });
     },
     
-    removeImage(index) {
+    async removeImage(index) {
+      const oldImageUrl = this.editingProject.images[index].url;
+      
+      // 如果是本地上传的图片，从服务器删除
+      if (oldImageUrl && oldImageUrl.startsWith('/uploads/')) {
+        try {
+          await fetch(`${API_BASE_URL}/upload/image`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ filename: oldImageUrl.replace('/uploads/', '') })
+          });
+        } catch (error) {
+          console.error('Failed to delete old image:', error);
+        }
+      }
+      
       this.editingProject.images.splice(index, 1);
     },
     
-    handleThumbnailUpload(event) {
+    async handleThumbnailUpload(event) {
       const file = event.target.files[0];
       if (file) {
-        this.convertFileToBase64(file).then(base64 => {
-          this.editingProject.thumbnail = base64;
-        });
+        try {
+          const result = await apiService.uploadImage(file);
+          this.editingProject.thumbnail = result.url;
+        } catch (error) {
+          alert('图片上传失败，请重试');
+          console.error('Thumbnail upload error:', error);
+        }
       }
     },
     
-    handleProjectImageUpload(event, index) {
+    async handleProjectImageUpload(event, index) {
       const file = event.target.files[0];
       if (file) {
-        this.convertFileToBase64(file).then(base64 => {
-          this.editingProject.images[index].url = base64;
-        });
+        try {
+          const result = await apiService.uploadImage(file);
+          this.editingProject.images[index].url = result.url;
+        } catch (error) {
+          alert('图片上传失败，请重试');
+          console.error('Image upload error:', error);
+        }
       }
-    },
-    
-    convertFileToBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-      });
     },
 
     async openAboutEdit() {
@@ -291,29 +307,17 @@ export default {
     async resetProjectIds() {
       if (confirm('确定要重置所有项目 ID 吗？这将会按照当前项目列表的顺序重新分配 ID（从 1 开始）。')) {
         try {
-          const backendAvailable = await apiService.checkBackendAvailable();
-          
-          if (!backendAvailable) {
-            alert('请启动后端服务器后再重置项目 ID，因为数据量较大无法保存到本地存储');
-            return;
-          }
-          
           // 重新排序项目 ID
           const updatedProjects = this.projects.map((project, index) => ({
             ...project,
             id: index + 1
           }));
           
-          // 批量保存所有项目到后端
-          const response = await fetch('http://localhost:3002/api/projects', {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updatedProjects),
-          });
+          console.log('Resetting project IDs:', updatedProjects.map(p => ({ id: p.id, title: p.title.zh || p.title.en })));
           
-          if (!response.ok) throw new Error('Failed to save projects');
+          // 批量保存所有项目
+          const result = await apiService.saveAllProjects(updatedProjects);
+          console.log('Save result:', result);
           
           // 重新加载项目列表
           await this.loadProjects();
