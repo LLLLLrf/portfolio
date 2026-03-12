@@ -49,39 +49,23 @@ export default {
       if (!this.project) return {};
       const projectInfo = {};
 
-      // 客户信息板块
-      const clientInfos = [];
-      if (this.project.client?.name) {
-        clientInfos.push({
-          id: 1,
-          title: 'Name',
-          details: this.t(this.project.client.name)
+      // 代码仓库板块
+      const codeRepos = [];
+      if (this.project.codeRepos && this.project.codeRepos.length > 0) {
+        this.project.codeRepos.forEach((repo, index) => {
+          if (repo.url && repo.url.trim()) {
+            codeRepos.push({
+              id: index + 1,
+              title: repo.name || `Repository ${index + 1}`,
+              details: repo.url,
+              link: repo.url
+            });
+          }
         });
       }
-      if (this.project.client?.services) {
-        clientInfos.push({
-          id: 2,
-          title: 'Services',
-          details: this.t(this.project.client.services)
-        });
-      }
-      if (this.project.client?.website) {
-        clientInfos.push({
-          id: 3,
-          title: 'Website',
-          details: this.project.client.website
-        });
-      }
-      if (this.project.client?.phone) {
-        clientInfos.push({
-          id: 4,
-          title: 'Phone',
-          details: this.project.client.phone
-        });
-      }
-      if (clientInfos.length > 0) {
-        projectInfo.clientHeading = 'About Client';
-        projectInfo.companyInfos = clientInfos;
+      if (codeRepos.length > 0) {
+        projectInfo.codeReposHeading = 'Code Repositories';
+        projectInfo.codeRepos = codeRepos;
       }
 
       // 项目目标板块

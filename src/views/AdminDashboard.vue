@@ -126,12 +126,7 @@ export default {
         thumbnail: projectCopy.thumbnail || '',
         date: projectCopy.date || '',
         tags: projectCopy.tags || [],
-        client: projectCopy.client || {
-          name: { zh: '', en: '' },
-          services: { zh: '', en: '' },
-          website: '',
-          phone: ''
-        },
+        codeRepos: projectCopy.codeRepos || [],
         objective: projectCopy.objective || { zh: '', en: '' },
         technologies: projectCopy.technologies || [],
         challenge: projectCopy.challenge || { zh: '', en: '' },
@@ -190,6 +185,21 @@ export default {
         url: '',
         caption: { zh: '', en: '' }
       });
+    },
+    
+    addCodeRepo() {
+      if (!this.editingProject.codeRepos) {
+        this.editingProject.codeRepos = [];
+      }
+      this.editingProject.codeRepos.push({
+        id: Date.now(),
+        name: '',
+        url: ''
+      });
+    },
+    
+    removeCodeRepo(index) {
+      this.editingProject.codeRepos.splice(index, 1);
     },
     
     async removeImage(index) {
@@ -820,73 +830,50 @@ export default {
 
           <div class="border-t border-gray-200 dark:border-secondary-dark pt-6">
             <h3 class="font-general-semibold text-xl text-ternary-dark dark:text-ternary-light mb-4">
-              客户信息
+              代码仓库
             </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
-                  公司名称 (中文)
-                </label>
-                <input
-                  v-model="editingProject.client.name.zh"
-                  type="text"
-                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
-                />
+            <div class="space-y-4">
+              <div v-for="(repo, index) in editingProject.codeRepos" :key="repo.id || index" class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div class="md:col-span-1">
+                  <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                    仓库名称
+                  </label>
+                  <input
+                    v-model="repo.name"
+                    type="text"
+                    class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+                    placeholder="例如：My Project"
+                  />
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                    仓库网址
+                  </label>
+                  <input
+                    v-model="repo.url"
+                    type="url"
+                    class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+                    placeholder="https://github.com/username/repo"
+                  />
+                </div>
+                <div class="md:col-span-3 text-right">
+                  <button
+                    @click="removeCodeRepo(index)"
+                    class="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm inline-flex items-center gap-1"
+                  >
+                    <i data-feather="trash" class="w-3 h-3"></i>
+                    删除
+                  </button>
+                </div>
               </div>
-              <div>
-                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
-                  Company Name (English)
-                </label>
-                <input
-                  v-model="editingProject.client.name.en"
-                  type="text"
-                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
-                />
-              </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
-                  服务 (中文)
-                </label>
-                <input
-                  v-model="editingProject.client.services.zh"
-                  type="text"
-                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
-                />
-              </div>
-              <div>
-                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
-                  Services (English)
-                </label>
-                <input
-                  v-model="editingProject.client.services.en"
-                  type="text"
-                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
-                />
-              </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
-                  网站
-                </label>
-                <input
-                  v-model="editingProject.client.website"
-                  type="text"
-                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
-                />
-              </div>
-              <div>
-                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
-                  电话
-                </label>
-                <input
-                  v-model="editingProject.client.phone"
-                  type="text"
-                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
-                />
-              </div>
+              
+              <button
+                @click="addCodeRepo"
+                class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 inline-flex items-center justify-center gap-2"
+              >
+                <i data-feather="plus" class="w-4 h-4"></i>
+                添加代码仓库
+              </button>
             </div>
           </div>
 
