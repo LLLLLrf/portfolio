@@ -119,6 +119,22 @@ export default {
     
     editProject(project) {
       const projectCopy = JSON.parse(JSON.stringify(project));
+      // 初始化所有图片的 title 和 description 字段
+      if (projectCopy.images) {
+        projectCopy.images.forEach(img => {
+          if (!img.title) {
+            img.title = { zh: '', en: '' };
+          }
+          if (!img.description) {
+            img.description = { zh: '', en: '' };
+          }
+          // 如果有 caption 但没有 title，将 caption 复制到 title
+          if (img.caption) {
+            if (!img.title.zh) img.title.zh = img.caption.zh || '';
+            if (!img.title.en) img.title.en = img.caption.en || '';
+          }
+        });
+      }
       this.editingProject = {
         id: projectCopy.id || null,
         title: projectCopy.title || { zh: '', en: '' },
@@ -186,6 +202,21 @@ export default {
         title: { zh: '', en: '' },
         description: { zh: '', en: '' }
       });
+    },
+    
+    initImageFields(image) {
+      // 初始化旧图片的 title 和 description 字段
+      if (!image.title) {
+        image.title = { zh: '', en: '' };
+      }
+      if (!image.description) {
+        image.description = { zh: '', en: '' };
+      }
+      // 如果没有 title 但有 caption，将 caption 复制到 title
+      if (image.caption && (!image.title.zh || !image.title.en)) {
+        if (!image.title.zh) image.title.zh = image.caption.zh || '';
+        if (!image.title.en) image.title.en = image.caption.en || '';
+      }
     },
     
     addCodeRepo() {
@@ -1060,6 +1091,7 @@ export default {
                       type="text"
                       class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
                       placeholder="缩略图下方显示的标题"
+                      @focus="initImageFields(image)"
                     />
                   </div>
                   <div>
@@ -1071,6 +1103,7 @@ export default {
                       type="text"
                       class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
                       placeholder="Title shown below thumbnail"
+                      @focus="initImageFields(image)"
                     />
                   </div>
                 </div>
@@ -1083,6 +1116,7 @@ export default {
                     rows="3"
                     class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
                     placeholder="大图中显示的详细描述，支持换行"
+                    @focus="initImageFields(image)"
                   ></textarea>
                 </div>
                 <div>
@@ -1094,6 +1128,7 @@ export default {
                     rows="3"
                     class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
                     placeholder="Description shown in modal, supports line breaks"
+                    @focus="initImageFields(image)"
                   ></textarea>
                 </div>
               </div>
