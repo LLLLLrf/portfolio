@@ -64,10 +64,10 @@ export default {
 						</div>
 					</div>
 					<div class="p-4">
-						<p class="font-general-medium text-base sm:text-lg text-ternary-dark dark:text-ternary-light text-center">
-							{{ projectImage.title }}
-						</p>
-					</div>
+					<p class="font-general-medium text-base sm:text-lg text-ternary-dark dark:text-ternary-light text-center">
+						{{ projectImage.title || projectImage.caption }}
+					</p>
+				</div>
 				</div>
 			</div>
 		</div>
@@ -102,8 +102,11 @@ export default {
 						</button>
 					</div>
 					<div class="p-4 bg-gray-50 dark:bg-gray-900">
-						<p class="font-general-medium text-base text-center text-gray-700 dark:text-gray-300">
-							{{ selectedImage.title }}
+						<p class="font-general-semibold text-lg text-center text-gray-800 dark:text-gray-200 mb-2">
+							{{ selectedImage.title || selectedImage.caption }}
+						</p>
+						<p v-if="selectedImage.description" class="font-general-regular text-sm text-center text-gray-600 dark:text-gray-400 whitespace-pre-line">
+							{{ selectedImage.description }}
 						</p>
 					</div>
 				</div>

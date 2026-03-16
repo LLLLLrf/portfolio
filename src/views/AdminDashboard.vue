@@ -183,7 +183,8 @@ export default {
       this.editingProject.images.push({
         id: Date.now(),
         url: '',
-        caption: { zh: '', en: '' }
+        title: { zh: '', en: '' },
+        description: { zh: '', en: '' }
       });
     },
     
@@ -1049,25 +1050,51 @@ export default {
                     </div>
                   </div>
                 </div>
-                <div>
-                  <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
-                    说明 (中文)
-                  </label>
-                  <input
-                    v-model="image.caption.zh"
-                    type="text"
-                    class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
-                  />
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                      标题 (中文)
+                    </label>
+                    <input
+                      v-model="image.title.zh"
+                      type="text"
+                      class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+                      placeholder="缩略图下方显示的标题"
+                    />
+                  </div>
+                  <div>
+                    <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                      Title (English)
+                    </label>
+                    <input
+                      v-model="image.title.en"
+                      type="text"
+                      class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+                      placeholder="Title shown below thumbnail"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
-                    Caption (English)
+                    描述 (中文)
                   </label>
-                  <input
-                    v-model="image.caption.en"
-                    type="text"
+                  <textarea
+                    v-model="image.description.zh"
+                    rows="3"
                     class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
-                  />
+                    placeholder="大图中显示的详细描述，支持换行"
+                  ></textarea>
+                </div>
+                <div>
+                  <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                    Description (English)
+                  </label>
+                  <textarea
+                    v-model="image.description.en"
+                    rows="3"
+                    class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+                    placeholder="Description shown in modal, supports line breaks"
+                  ></textarea>
                 </div>
               </div>
             </div>

@@ -41,7 +41,8 @@ export default {
       if (!this.project) return [];
       return (this.project.images || []).map(img => ({
         id: img.id,
-        title: this.t(img.caption),
+        title: img.title ? this.t(img.title) : (img.caption ? this.t(img.caption) : ''),
+        description: img.description ? this.t(img.description) : '',
         img: img.url
       }));
     },

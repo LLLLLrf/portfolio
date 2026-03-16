@@ -93,18 +93,7 @@
       "Product Management",
       "AI Application"
     ],
-    "client": {
-      "name": {
-        "zh": "",
-        "en": ""
-      },
-      "services": {
-        "zh": "",
-        "en": ""
-      },
-      "website": "",
-      "phone": ""
-    },
+    "codeRepos": [],
     "objective": {
       "zh": "本项目灵感来源于疫情期间带火的居家健身浪潮。在实际体验了健身软件keep、网络直播跟练、线上健身私教课等模式后，我意识到，居家健身对于普通人仍有较高的上手门槛。问题包括：用户线上跟练无法获得动作指导和及时反馈，无法确认自身的跟练效果，从而可能对健身成效产生焦虑情绪，甚至可能因动作不规范受伤。而一对一的私教课收费高昂，上课时心理压力较大，不满足许多人居家时想随时轻松运动的需求。因此，我们基于AI技术，实现了用手机前置摄像头对用户动作的精准建模，并与教练的动作做相似度评估，将动作准确度实时展示在屏幕上。",
       "en": "The inspiration for this project comes from the home fitness trend that gained popularity during the pandemic. After experiencing various home fitness models such as the fitness app Keep, online live-streaming workouts, and online private fitness classes, I realized that there are still high entry barriers for ordinary people to engage in home fitness. The problems include: users cannot receive movement guidance and timely feedback when following online classes, and they cannot confirm their exercise effect, which may cause anxiety about the fitness results and even lead to injuries due to incorrect movements. Moreover, one-on-one private classes are expensive and cause psychological pressure during the class, which does not meet the needs of many people who want to exercise casually at home. Therefore, based on AI technology, we have achieved precise modeling of users' movements using the front camera of their mobile phones and evaluated the similarity with the coach's movements, displaying the accuracy of the movements in real time on the screen."
@@ -119,7 +108,16 @@
       "en": "The challenges of the project are as follows:\n1. The user's mobile phone camera is usually a 2D camera, while achieving precise motion posture assessment requires 3D data. Therefore, we implemented the spatial depth estimation of the skeleton through the 2D-3D prediction model of Openpose.\n2. The conventional coordinate similarity calculation methods (such as cosine similarity) may encounter problems like joint deadlock, resulting in inaccurate calculation of skeleton similarity. We introduced the quaternion similarity algorithm commonly used in the field of robotics to achieve more accurate and efficient representation of the user's skeleton model."
     },
     "details": [],
-    "images": [],
+    "images": [
+      {
+        "id": 1773645748277,
+        "url": "/uploads/1773645981027-946888708.png",
+        "caption": {
+          "zh": "针对现有软件存在的诸多不足，我们利用全新的AI技术，给用户实时反馈，保障用户的运动安全并提升运动积极性",
+          "en": "In response to the numerous shortcomings of existing software, we have utilized cutting-edge AI technology to provide real-time feedback to users, ensuring their exercise safety and enhancing their enthusiasm for physical activity."
+        }
+      }
+    ],
     "relatedProjects": []
   }
 ]
