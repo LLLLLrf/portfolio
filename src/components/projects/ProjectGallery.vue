@@ -75,32 +75,37 @@ export default {
 		<!-- Image Modal -->
 		<div 
 			v-if="isModalOpen && selectedImage" 
-			class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4 transition-opacity duration-300"
+			class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4 transition-opacity duration-300"
 			@click="closeImageModal"
 		>
 			<div 
-				class="relative max-w-4xl max-h-[90vh] transition-transform duration-300 transform scale-95 opacity-0 animate-fade-in"
-				style="animation: fadeIn 0.3s forwards"
+				class="relative transition-all duration-500 ease-out transform"
+				:class="isModalOpen ? 'scale-100 opacity-100' : 'scale-90 opacity-0'"
 				@click.stop
 			>
-				<img 
-					:src="selectedImage.img" 
-					:alt="selectedImage.title"
-					class="max-w-full max-h-[80vh] object-contain rounded-lg"
-				/>
-				<div class="absolute top-4 right-4">
-					<button 
-						@click="closeImageModal"
-						class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-2 rounded-full transition-all duration-300"
-						aria-label="Close"
-					>
-						<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-						</svg>
-					</button>
-				</div>
-				<div class="mt-4 text-center text-white">
-					<p class="font-general-medium text-lg">{{ selectedImage.title }}</p>
+				<div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden max-w-5xl">
+					<div class="relative">
+						<img 
+							:src="selectedImage.img" 
+							:alt="selectedImage.title"
+							class="w-full h-auto max-h-[75vh] object-contain"
+							@click.stop
+						/>
+						<button 
+							@click="closeImageModal"
+							class="absolute top-3 right-3 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110"
+							aria-label="Close"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+							</svg>
+						</button>
+					</div>
+					<div class="p-4 bg-gray-50 dark:bg-gray-900">
+						<p class="font-general-medium text-base text-center text-gray-700 dark:text-gray-300">
+							{{ selectedImage.title }}
+						</p>
+					</div>
 				</div>
 			</div>
 		</div>
