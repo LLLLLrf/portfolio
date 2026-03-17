@@ -3,8 +3,12 @@ import { apiService } from '../services/apiService';
 import { useLanguage } from '../composables/useLanguage';
 import { useRouter } from 'vue-router';
 import feather from 'feather-icons';
+import draggable from 'vuedraggable';
 
 export default {
+  components: {
+    draggable
+  },
   setup() {
     const router = useRouter();
     const { t } = useLanguage();
@@ -87,6 +91,10 @@ export default {
     },
     async loadAboutMe() {
       this.aboutMeData = await apiService.getAboutMe();
+      // 确保avatar字段存在
+      if (!this.aboutMeData.avatar) {
+        this.aboutMeData.avatar = '/assets/images/profile.jpg';
+      }
     },
     async loadResumes() {
       const config = await apiService.getResumes();
@@ -151,6 +159,10 @@ export default {
         relatedProjects: projectCopy.relatedProjects || []
       };
       this.isProjectModalOpen = true;
+      // 重新初始化图标
+      this.$nextTick(() => {
+        feather.replace();
+      });
     },
     
     async deleteProject(id) {
@@ -201,6 +213,10 @@ export default {
         url: '',
         title: { zh: '', en: '' },
         description: { zh: '', en: '' }
+      });
+      // 重新初始化图标
+      this.$nextTick(() => {
+        feather.replace();
       });
     },
     
@@ -255,6 +271,30 @@ export default {
       this.editingProject.images.splice(index, 1);
     },
     
+    moveImageUp(index) {
+      if (index > 0) {
+        const temp = this.editingProject.images[index];
+        this.editingProject.images[index] = this.editingProject.images[index - 1];
+        this.editingProject.images[index - 1] = temp;
+        // 重新初始化图标
+        this.$nextTick(() => {
+          feather.replace();
+        });
+      }
+    },
+    
+    moveImageDown(index) {
+      if (index < this.editingProject.images.length - 1) {
+        const temp = this.editingProject.images[index];
+        this.editingProject.images[index] = this.editingProject.images[index + 1];
+        this.editingProject.images[index + 1] = temp;
+        // 重新初始化图标
+        this.$nextTick(() => {
+          feather.replace();
+        });
+      }
+    },
+    
     async handleThumbnailUpload(event) {
       const file = event.target.files[0];
       if (file) {
@@ -272,11 +312,58 @@ export default {
       const file = event.target.files[0];
       if (file) {
         try {
+          // 删除旧图片
+          const oldImageUrl = this.editingProject.images[index].url;
+          if (oldImageUrl && oldImageUrl.startsWith('/uploads/')) {
+            try {
+              await fetch(`${API_BASE_URL}/upload/image`, {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ filename: oldImageUrl.replace('/uploads/', '') })
+              });
+            } catch (error) {
+              console.error('Failed to delete old image:', error);
+            }
+          }
+          
+          // 上传新图片
           const result = await apiService.uploadImage(file);
           this.editingProject.images[index].url = result.url;
         } catch (error) {
           alert('图片上传失败，请重试');
           console.error('Image upload error:', error);
+        }
+      }
+    },
+    
+    async handleAvatarUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        try {
+          // 删除旧头像
+          const oldAvatarUrl = this.aboutMeData.avatar;
+          if (oldAvatarUrl && oldAvatarUrl.startsWith('/uploads/')) {
+            try {
+              await fetch(`${API_BASE_URL}/upload/image`, {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ filename: oldAvatarUrl.replace('/uploads/', '') })
+              });
+            } catch (error) {
+              console.error('Failed to delete old avatar:', error);
+            }
+          }
+          
+          // 上传新头像
+          const result = await apiService.uploadImage(file);
+          this.aboutMeData.avatar = result.url;
+        } catch (error) {
+          alert('头像上传失败，请重试');
+          console.error('Avatar upload error:', error);
         }
       }
     },
@@ -423,6 +510,29 @@ export default {
         console.error('复制失败:', err);
         alert('复制失败，请手动复制配置');
       });
+    },
+    
+    async handleDragEnd() {
+      try {
+        // 重新排序项目 ID
+        const updatedProjects = this.projects.map((project, index) => ({
+          ...project,
+          id: index + 1
+        }));
+        
+        console.log('Updating project order:', updatedProjects.map(p => ({ id: p.id, title: p.title.zh || p.title.en })));
+        
+        // 批量保存所有项目
+        await apiService.saveAllProjects(updatedProjects);
+        
+        // 重新加载项目列表
+        await this.loadProjects();
+        
+        alert('项目排序已更新成功！');
+      } catch (error) {
+        console.error('Update project order error:', error);
+        alert('更新项目排序失败，请重试');
+      }
     }
   }
 };
@@ -529,38 +639,51 @@ export default {
               <th class="px-6 py-4 text-right font-general-semibold text-ternary-dark dark:text-ternary-light">操作</th>
             </tr>
           </thead>
-          <tbody>
-            <tr v-for="project in projects" :key="project.id" class="border-t border-gray-200 dark:border-secondary-dark">
-              <td class="px-6 py-4 text-ternary-dark dark:text-ternary-light font-mono">
-                {{ project.id }}
-              </td>
-              <td class="px-6 py-4 text-ternary-dark dark:text-ternary-light">
-                {{ t(project.title) }}
-              </td>
-              <td class="px-6 py-4 text-ternary-dark dark:text-ternary-light">
-                {{ t(project.category) }}
-              </td>
-              <td class="px-6 py-4 text-ternary-dark dark:text-ternary-light">
-                {{ project.date }}
-              </td>
-              <td class="px-6 py-4 text-right">
-                <button
-                  @click="editProject(project)"
-                  class="px-3 py-1 mr-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  <i data-feather="edit" class="w-4 h-4 inline"></i>
-                  编辑
-                </button>
-                <button
-                  @click="deleteProject(project.id)"
-                  class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                >
-                  <i data-feather="trash" class="w-4 h-4 inline"></i>
-                  删除
-                </button>
-              </td>
-            </tr>
-          </tbody>
+          <draggable
+            v-model="projects"
+            @end="handleDragEnd"
+            item-key="id"
+            handle=".drag-handle"
+            tag="tbody"
+          >
+            <template #item="{ element: project }">
+              <tr class="border-t border-gray-200 dark:border-secondary-dark">
+                <td class="px-6 py-4 text-ternary-dark dark:text-ternary-light font-mono text-left">
+                  <div class="flex items-center">
+                    <div class="drag-handle cursor-move mr-2">
+                      <i data-feather="move" class="w-4 h-4"></i>
+                    </div>
+                    {{ project.id }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-ternary-dark dark:text-ternary-light text-left">
+                  {{ t(project.title) }}
+                </td>
+                <td class="px-6 py-4 text-ternary-dark dark:text-ternary-light text-left">
+                  {{ t(project.category) }}
+                </td>
+                <td class="px-6 py-4 text-ternary-dark dark:text-ternary-light text-left">
+                  {{ project.date }}
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <button
+                    @click="editProject(project)"
+                    class="px-3 py-1 mr-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    <i data-feather="edit" class="w-4 h-4 inline"></i>
+                    编辑
+                  </button>
+                  <button
+                    @click="deleteProject(project.id)"
+                    class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                  >
+                    <i data-feather="trash" class="w-4 h-4 inline"></i>
+                    删除
+                  </button>
+                </td>
+              </tr>
+            </template>
+          </draggable>
         </table>
       </div>
     </div>
@@ -1039,7 +1162,23 @@ export default {
               </button>
             </div>
             <div v-for="(image, index) in editingProject.images" :key="image.id" class="mb-4 p-4 border border-gray-200 dark:border-secondary-dark rounded-lg">
-              <div class="flex justify-end mb-2">
+              <div class="flex justify-between items-center mb-2">
+                <div class="flex gap-2">
+                  <button
+                    @click="moveImageUp(index)"
+                    :disabled="index === 0"
+                    class="px-2 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <i data-feather="arrow-up" class="w-3 h-3 inline"></i>
+                  </button>
+                  <button
+                    @click="moveImageDown(index)"
+                    :disabled="index === editingProject.images.length - 1"
+                    class="px-2 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <i data-feather="arrow-down" class="w-3 h-3 inline"></i>
+                  </button>
+                </div>
                 <button
                   @click="removeImage(index)"
                   class="px-2 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
@@ -1182,6 +1321,40 @@ export default {
         </div>
         
         <div class="p-6 space-y-6">
+          <!-- 头像上传 -->
+          <div class="mb-6">
+            <h3 class="font-general-semibold text-xl text-ternary-dark dark:text-ternary-light mb-4">
+              个人头像
+            </h3>
+            <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
+              <input
+                type="file"
+                accept="image/*"
+                @change="handleAvatarUpload"
+                class="hidden"
+                id="avatar-input"
+              />
+              <div class="text-center">
+                <label
+                  for="avatar-input"
+                  class="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 mb-2 cursor-pointer"
+                >
+                  选择或拖拽图片
+                </label>
+                <p class="text-sm text-gray-500 dark:text-gray-400">支持 JPG, PNG, GIF 等格式</p>
+              </div>
+              <div v-if="aboutMeData.avatar" class="mt-4">
+                <img :src="aboutMeData.avatar" class="max-h-40 mx-auto rounded" />
+                <input
+                  v-model="aboutMeData.avatar"
+                  type="text"
+                  placeholder="或输入图片URL"
+                  class="w-full mt-2 px-3 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
           <div class="flex justify-between items-center">
             <h3 class="font-general-semibold text-xl text-ternary-dark dark:text-ternary-light">
               个人简介段落

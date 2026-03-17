@@ -66,7 +66,7 @@ export default {
 				</div>
 			</div>
 
-			<div class="p-6 md:p-7 bg-white dark:bg-ternary-dark border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+			<div v-if="projectInfo.socialSharings && projectInfo.socialSharings.length > 0" class="p-6 md:p-7 bg-white dark:bg-ternary-dark border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
 				<p class="font-general-semibold text-lg md:text-xl text-ternary-dark dark:text-ternary-light mb-4 pb-3 border-b border-gray-100 dark:border-gray-700">
 					{{ projectInfo.socialSharingsHeading }}
 				</p>
@@ -86,15 +86,6 @@ export default {
 		</div>
 
 		<div class="lg:col-span-2 w-full text-left space-y-8">
-			<div v-if="projectInfo.challengeDetails" class="p-6 md:p-8 lg:p-10 bg-white dark:bg-ternary-dark border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm">
-				<h2 class="font-general-bold text-primary-dark dark:text-primary-light text-2xl md:text-3xl mb-6 md:mb-8">
-					{{ projectInfo.challengeHeading }}
-				</h2>
-				<p class="font-general-regular text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-					{{ projectInfo.challengeDetails }}
-				</p>
-			</div>
-
 			<div v-if="projectInfo.projectDetails" class="p-6 md:p-8 lg:p-10 bg-white dark:bg-ternary-dark border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm">
 				<h2 class="font-general-bold text-primary-dark dark:text-primary-light text-2xl md:text-3xl mb-6 md:mb-8">
 					{{ projectInfo.projectDetailsHeading }}
@@ -109,6 +100,15 @@ export default {
 						{{ projectDetail.details }}
 					</p>
 				</div>
+			</div>
+
+			<div v-if="projectInfo.challengeDetails" class="p-6 md:p-8 lg:p-10 bg-white dark:bg-ternary-dark border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm">
+				<h2 class="font-general-bold text-primary-dark dark:text-primary-light text-2xl md:text-3xl mb-6 md:mb-8">
+					{{ projectInfo.challengeHeading }}
+				</h2>
+				<p class="font-general-regular text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+					{{ projectInfo.challengeDetails }}
+				</p>
 			</div>
 		</div>
 

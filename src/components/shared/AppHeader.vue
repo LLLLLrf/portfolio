@@ -45,11 +45,11 @@ export default {
 	},
 
 	created() {
-		this.theme = localStorage.getItem('theme') || 'light';
+		this.theme = localStorage.getItem('theme') || 'dark';
 	},
 	mounted() {
 		feather.replace();
-		this.theme = localStorage.getItem('theme') || 'light';
+		this.theme = localStorage.getItem('theme') || 'dark';
 	},
 	methods: {
 		updateTheme(theme) {
@@ -77,10 +77,10 @@ export default {
 </script>
 
 <template>
-	<nav id="nav" class="sm:container sm:mx-auto">
+	<nav id="nav" class="fixed top-0 left-0 right-0 bg-white dark:bg-gray-900 shadow-md z-50">
 		<!-- Header start -->
 		<div
-			class="z-10 max-w-screen-lg xl:max-w-screen-xl block sm:flex sm:justify-between sm:items-center my-6"
+			class="sm:container sm:mx-auto max-w-screen-lg xl:max-w-screen-xl block sm:flex sm:justify-between sm:items-center py-4 px-4 sm:px-0"
 		>
 			<!-- Header menu links and small screen hamburger menu -->
 			<div class="flex justify-between items-center px-4 sm:px-0">

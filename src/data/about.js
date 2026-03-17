@@ -1,4 +1,5 @@
 export default {
+  "avatar": "/assets/images/profile.jpg",
   "bios": [
     {
       "id": 1,

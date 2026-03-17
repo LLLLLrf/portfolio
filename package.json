@@ -28,7 +28,8 @@
     "vue-backtotop": "^1.6.1",
     "vue-i18n": "^12.0.0-alpha.3",
     "vue-router": "^4.1.6",
-    "vue3-autocounter": "^1.0.6"
+    "vue3-autocounter": "^1.0.6",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@vue/cli-service": "~5.0.8",

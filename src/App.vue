@@ -10,7 +10,7 @@ export default {
 	},
 	data: () => {
 		return {
-			appTheme: localStorage.getItem('theme'),
+			appTheme: localStorage.getItem('theme') || 'dark',
 		};
 	},
 	mounted() {
@@ -53,6 +53,7 @@ export default {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	text-align: center;
+	padding-top: 80px;
 }
 
 .vue-back-to-top {

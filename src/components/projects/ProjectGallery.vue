@@ -37,37 +37,39 @@ export default {
 
 <template>
 	<div class="mt-10 md:mt-12">
-		<!-- Image Grid -->
-		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-			<div
-				class="group"
-				v-for="projectImage in projectImages"
-				:key="projectImage.id"
-			>
-				<div 
-					class="bg-secondary-light dark:bg-ternary-dark rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
-					@click="openImageModal(projectImage)"
+		<!-- Image Horizontal Scroll -->
+		<div class="relative">
+			<div class="flex gap-4 sm:gap-6 md:gap-8 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-visible">
+				<div
+					class="group flex-shrink-0 w-80 sm:w-96 md:w-80 snap-start"
+					v-for="projectImage in projectImages"
+					:key="projectImage.id"
 				>
-					<div class="relative overflow-hidden">
-						<img
-							:src="projectImage.img"
-							class="w-full h-64 sm:h-72 md:h-80 object-cover rounded-t-xl transition-transform duration-500 group-hover:scale-105"
-							:alt="projectImage.title"
-							loading="lazy"
-						/>
-						<div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-							<div class="transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-								<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-								</svg>
+					<div 
+						class="bg-secondary-light dark:bg-ternary-dark rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer h-full"
+						@click="openImageModal(projectImage)"
+					>
+						<div class="relative overflow-hidden">
+							<img
+								:src="projectImage.img"
+								class="w-full h-64 sm:h-72 object-cover rounded-t-xl transition-transform duration-500 group-hover:scale-105"
+								:alt="projectImage.title"
+								loading="lazy"
+							/>
+							<div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+								<div class="transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+									<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+									</svg>
+								</div>
 							</div>
 						</div>
+						<div class="p-4">
+						<p class="font-general-medium text-base sm:text-lg text-ternary-dark dark:text-ternary-light text-center">
+							{{ projectImage.title || projectImage.caption }}
+						</p>
 					</div>
-					<div class="p-4">
-					<p class="font-general-medium text-base sm:text-lg text-ternary-dark dark:text-ternary-light text-center">
-						{{ projectImage.title || projectImage.caption }}
-					</p>
-				</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -130,5 +132,43 @@ img {
 
 img.loading {
 	opacity: 0.5;
+}
+
+.scrollbar-visible {
+	scrollbar-width: thin;
+	scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+	-ms-overflow-style: auto;
+}
+
+.scrollbar-visible::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+
+.scrollbar-visible::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.scrollbar-visible::-webkit-scrollbar-thumb {
+	background-color: rgba(156, 163, 175, 0.5);
+	border-radius: 3px;
+	opacity: 1 !important;
+	visibility: visible !important;
+}
+
+.scrollbar-visible::-webkit-scrollbar-thumb:hover {
+	background-color: rgba(156, 163, 175, 0.7);
+}
+
+.dark .scrollbar-visible {
+	scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+}
+
+.dark .scrollbar-visible::-webkit-scrollbar-thumb {
+	background-color: rgba(75, 85, 99, 0.5);
+}
+
+.dark .scrollbar-visible::-webkit-scrollbar-thumb:hover {
+	background-color: rgba(75, 85, 99, 0.7);
 }
 </style>

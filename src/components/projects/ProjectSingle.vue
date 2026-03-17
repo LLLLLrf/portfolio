@@ -16,11 +16,11 @@ export default {
 		class="rounded-xl shadow-lg hover:shadow-xl cursor-pointer mb-10 sm:mb-0 bg-secondary-light dark:bg-ternary-dark"
 		aria-label="Single Project"
 	>
-		<div>
+		<div class="relative h-64 sm:h-72 overflow-hidden">
 			<img
 				:src="project.thumbnail"
 				:alt="t(project.title)"
-				class="rounded-t-xl border-none"
+				class="w-full h-full object-cover rounded-t-xl border-none"
 			/>
 		</div>
 		<div class="text-center px-4 py-6">
