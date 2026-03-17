@@ -399,12 +399,16 @@ export const apiService = {
   },
 
   async getAboutMeLocal() {
-    // 直接从静态文件读取数据，不从 localStorage 读取
+    // 直接从后端数据文件读取，不从 localStorage 读取
+    // 这样可以确保显示的是服务器上的最新静态数据
     try {
-      const staticData = await import('@/data/about.js');
-      if (staticData && staticData.default) {
+      // 使用 fetch 读取 JSON 文件，添加时间戳避免缓存
+      const timestamp = Date.now();
+      const response = await fetch(`/data/about.json?t=${timestamp}`);
+      if (response.ok) {
+        const data = await response.json();
         console.log('Loaded about data from static file');
-        return staticData.default;
+        return data;
       }
     } catch (error) {
       console.error('Failed to load static about data:', error);
@@ -412,6 +416,7 @@ export const apiService = {
     
     // 如果静态文件加载失败，返回默认数据
     return {
+      avatar: '/assets/images/profile.jpg',
       bios: [
         {
           id: 1,

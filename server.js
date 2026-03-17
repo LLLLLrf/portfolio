@@ -9,8 +9,8 @@ const PASSWORD_FILE = path.join(__dirname, 'data', 'password.json');
 const app = express();
 const PORT = 3002;
 
-const DATA_FILE = path.join(__dirname, 'data', 'projects.json');
-const ABOUT_FILE = path.join(__dirname, 'data', 'about.json');
+const DATA_FILE = path.join(__dirname, 'public', 'data', 'projects.json');
+const ABOUT_FILE = path.join(__dirname, 'public', 'data', 'about.json');
 const CV_DIR = path.join(__dirname, 'public', 'files', 'cv');
 const CV_CONFIG_FILE = path.join(CV_DIR, 'config.json');
 const DATA_DIR = path.dirname(DATA_FILE);
