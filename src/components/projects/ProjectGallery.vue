@@ -24,13 +24,32 @@ export default {
 			if (event.key === 'Escape' && this.isModalOpen) {
 				this.closeImageModal();
 			}
+		},
+		handleWheel(event) {
+			// 阻止默认的滚轮行为（页面上下滚动）
+			event.preventDefault();
+			// 调整滚动速度，使每个滚轮刻度滚动适量距离
+			const scrollSpeed = 20; // 滚动速度系数，越小滚动越细腻
+			event.currentTarget.scrollLeft += event.deltaY * scrollSpeed;
 		}
 	},
 	mounted() {
 		document.addEventListener('keydown', this.escapeKeyHandler);
+		// 为滚动容器添加鼠标滚轮事件监听器
+		this.$nextTick(() => {
+			const scrollContainer = document.querySelector('.scrollbar-visible');
+			if (scrollContainer) {
+				scrollContainer.addEventListener('wheel', this.handleWheel);
+			}
+		});
 	},
 	unmounted() {
 		document.removeEventListener('keydown', this.escapeKeyHandler);
+		// 移除鼠标滚轮事件监听器
+		const scrollContainer = document.querySelector('.scrollbar-visible');
+		if (scrollContainer) {
+			scrollContainer.removeEventListener('wheel', this.handleWheel);
+		}
 	}
 };
 </script>

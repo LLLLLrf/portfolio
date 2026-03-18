@@ -1,12 +1,11 @@
 <script>
 import feather from 'feather-icons';
-import ProjectsFilter from './ProjectsFilter.vue';
 import ProjectSingle from './ProjectSingle.vue';
 import { apiService } from '../../services/apiService';
 import { useLanguage } from '../../composables/useLanguage';
 
 export default {
-	components: { ProjectSingle, ProjectsFilter },
+	components: { ProjectSingle },
 	setup() {
 		const { t } = useLanguage();
 		return { t };
@@ -15,21 +14,14 @@ export default {
 		return {
 			projects: [],
 			projectsHeading: 'Projects Portfolio',
-			selectedCategory: '',
 			searchProject: '',
+			sortOrder: 'default', // default, newest, oldest
 		};
 	},
 	computed: {
-		// Get the filtered projects
+		// Get the filtered and sorted projects
 		filteredProjects() {
 			let filtered = this.projects;
-			
-			if (this.selectedCategory) {
-				filtered = filtered.filter((item) => {
-					const categoryZh = this.t(item.category);
-					return categoryZh.toLowerCase().includes(this.selectedCategory.toLowerCase());
-				});
-			}
 			
 			if (this.searchProject) {
 				const searchRegExp = new RegExp(this.searchProject, 'i');
@@ -37,6 +29,16 @@ export default {
 					const title = this.t(el.title);
 					return title.match(searchRegExp);
 				});
+			}
+			
+			// Sort projects based on selected order
+			if (this.sortOrder === 'newest') {
+				filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+			} else if (this.sortOrder === 'oldest') {
+				filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+			} else if (this.sortOrder === 'default') {
+				// Default sort by project ID ascending
+				filtered.sort((a, b) => a.id - b.id);
 			}
 			
 			return filtered;
@@ -66,7 +68,7 @@ export default {
 			</p>
 		</div>
 
-		<!-- Filter and search projects -->
+		<!-- Search and sort projects -->
 		<div class="mt-10 sm:mt-10">
 			<h3
 				class="font-general-regular
@@ -78,7 +80,7 @@ export default {
 					mb-4
 				"
 			>
-				Search projects by title or filter by category
+				Search projects by title or sort by date
 			</h3>
 			<div
 				class="
@@ -133,7 +135,34 @@ export default {
 						aria-label="Name"
 					/>
 				</div>
-				<ProjectsFilter @filter="selectedCategory = $event" />
+				<select
+					v-model="sortOrder"
+					class="font-general-medium
+						px-4
+						py-2.5
+						border-1 border-gray-200
+						dark:border-secondary-dark
+						rounded-lg
+						text-sm
+						sm:text-md
+						bg-secondary-light
+						dark:bg-ternary-dark
+						text-primary-dark
+						dark:text-ternary-light
+						shadow-sm
+						hover:shadow-md
+						hover:border-blue-300
+						dark:hover:border-blue-600
+						transition-all
+						cursor-pointer
+						appearance-none
+						relative
+					"
+				>
+					<option value="default">默认排序</option>
+					<option value="newest">由新到旧</option>
+					<option value="oldest">由旧到新</option>
+				</select>
 			</div>
 		</div>
 

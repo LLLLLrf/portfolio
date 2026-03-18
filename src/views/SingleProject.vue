@@ -96,7 +96,7 @@ export default {
         projectInfo.projectDetailsHeading = 'Project Details';
         projectInfo.projectDetails = this.project.details.map(d => ({
           id: d.id,
-          details: this.t(d.content)
+          details: this.t(d.content) // 这里d.content已经在apiService中被格式化为HTML
         }));
       }
 

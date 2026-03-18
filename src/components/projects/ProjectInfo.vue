@@ -42,11 +42,11 @@ export default {
 				</ul>
 			</div>
 
-			<div v-if="projectInfo.objectivesDetails" class="p-6 md:p-7 bg-white dark:bg-ternary-dark border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+			<div v-if="projectInfo.objectivesDetails" class="p-6 md:p-7 bg-white dark:bg-ternary-dark border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 text-left">
 				<p class="font-general-semibold text-lg md:text-xl text-ternary-dark dark:text-ternary-light mb-4 pb-3 border-b border-gray-100 dark:border-gray-700">
 					{{ projectInfo.objectivesHeading }}
 				</p>
-				<p class="font-general-regular text-gray-600 dark:text-gray-300 leading-relaxed text-base">
+				<p class="font-general-regular text-gray-600 dark:text-gray-300 leading-relaxed text-base whitespace-pre-line">
 					{{ projectInfo.objectivesDetails }}
 				</p>
 			</div>
@@ -93,12 +93,11 @@ export default {
 				
 				<div class="space-y-6 md:space-y-8">
 					<p
-						v-for="projectDetail in projectInfo.projectDetails"
-						:key="projectDetail.id"
-						class="font-general-regular text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line"
-					>
-						{{ projectDetail.details }}
-					</p>
+					v-for="projectDetail in projectInfo.projectDetails"
+					:key="projectDetail.id"
+					class="font-general-regular text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line"
+					v-html="projectDetail.details"
+				></p>
 				</div>
 			</div>
 

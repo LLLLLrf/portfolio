@@ -56,19 +56,45 @@ export const apiService = {
     return await this.getProjectsLocal();
   },
 
+  formatText(text) {
+    if (!text) return '';
+    // 处理加粗格式 **text**
+    return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  },
+
   async getProject(id) {
     const backendAvailable = await this.checkBackendAvailable();
     if (backendAvailable) {
       try {
         const response = await fetch(`${API_BASE_URL}/projects/${id}`);
         if (!response.ok) throw new Error('Failed to fetch');
-        return await response.json();
+        const project = await response.json();
+        // 处理项目详情的加粗格式
+        if (project.details) {
+          project.details.forEach(detail => {
+            if (detail.content) {
+              if (detail.content.zh) detail.content.zh = this.formatText(detail.content.zh);
+              if (detail.content.en) detail.content.en = this.formatText(detail.content.en);
+            }
+          });
+        }
+        return project;
       } catch (error) {
         console.warn('Backend failed, falling back to localStorage');
       }
     }
     const projects = await this.getProjectsLocal();
-    return projects.find(p => p.id === parseInt(id));
+    const project = projects.find(p => p.id === parseInt(id));
+    // 处理项目详情的加粗格式
+    if (project && project.details) {
+      project.details.forEach(detail => {
+        if (detail.content) {
+          if (detail.content.zh) detail.content.zh = this.formatText(detail.content.zh);
+          if (detail.content.en) detail.content.en = this.formatText(detail.content.en);
+        }
+      });
+    }
+    return project;
   },
 
   async saveProject(project) {

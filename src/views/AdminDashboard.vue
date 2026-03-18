@@ -207,6 +207,30 @@ export default {
       this.editingProject.details.splice(index, 1);
     },
     
+    moveDetailUp(index) {
+      if (index > 0) {
+        const temp = this.editingProject.details[index];
+        this.editingProject.details[index] = this.editingProject.details[index - 1];
+        this.editingProject.details[index - 1] = temp;
+      }
+    },
+    
+    moveDetailDown(index) {
+      if (index < this.editingProject.details.length - 1) {
+        const temp = this.editingProject.details[index];
+        this.editingProject.details[index] = this.editingProject.details[index + 1];
+        this.editingProject.details[index + 1] = temp;
+      }
+    },
+    
+    toggleDetailBold(detail, lang) {
+      if (!detail.content[lang]) {
+        detail.content[lang] = '**加粗文本**';
+      } else {
+        detail.content[lang] += ' **加粗文本**';
+      }
+    },
+    
     addImage() {
       this.editingProject.images.push({
         id: Date.now(),
@@ -1114,7 +1138,23 @@ export default {
               </button>
             </div>
             <div v-for="(detail, index) in editingProject.details" :key="detail.id" class="mb-4 p-4 border border-gray-200 dark:border-secondary-dark rounded-lg">
-              <div class="flex justify-end mb-2">
+              <div class="flex justify-between items-center mb-2">
+                <div class="flex gap-2">
+                  <button
+                    @click="moveDetailUp(index)"
+                    :disabled="index === 0"
+                    class="px-2 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <i data-feather="arrow-up" class="w-3 h-3 inline"></i>
+                  </button>
+                  <button
+                    @click="moveDetailDown(index)"
+                    :disabled="index === editingProject.details.length - 1"
+                    class="px-2 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <i data-feather="arrow-down" class="w-3 h-3 inline"></i>
+                  </button>
+                </div>
                 <button
                   @click="removeDetail(index)"
                   class="px-2 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
@@ -1128,6 +1168,15 @@ export default {
                   <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                     内容 (中文)
                   </label>
+                  <div class="flex gap-2 mb-2">
+                    <button
+                      @click="toggleDetailBold(detail, 'zh')"
+                      class="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+                    >
+                      <i data-feather="bold" class="w-4 h-4"></i>
+                    </button>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">使用 **文本** 格式添加加粗</span>
+                  </div>
                   <textarea
                     v-model="detail.content.zh"
                     rows="3"
@@ -1138,6 +1187,15 @@ export default {
                   <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
                     Content (English)
                   </label>
+                  <div class="flex gap-2 mb-2">
+                    <button
+                      @click="toggleDetailBold(detail, 'en')"
+                      class="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+                    >
+                      <i data-feather="bold" class="w-4 h-4"></i>
+                    </button>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">Use **text** format to add bold</span>
+                  </div>
                   <textarea
                     v-model="detail.content.en"
                     rows="3"

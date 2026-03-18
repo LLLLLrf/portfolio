@@ -136,99 +136,23 @@
       }
     ],
     "relatedProjects": [
-      3
+      2
     ]
   },
   {
     "id": 2,
     "title": {
-      "zh": "测试图片项目1",
-      "en": "Test Image Project"
-    },
-    "category": {
-      "zh": "测试",
-      "en": "Test"
-    },
-    "thumbnail": "/uploads/1773281882414-336504318.png",
-    "date": "2024-02-09",
-    "tags": [
-      "Test",
-      "Machine Learning",
-      "Artificial Intelligence",
-      "Product Management"
-    ],
-    "client": {
-      "name": {
-        "zh": "",
-        "en": ""
-      },
-      "services": {
-        "zh": "",
-        "en": ""
-      },
-      "website": "",
-      "phone": ""
-    },
-    "objective": {
-      "zh": "测试图片上传",
-      "en": "Test Image Upload"
-    },
-    "technologies": [
-      "Vue.js",
-      "Electron",
-      "React",
-      "Javascript"
-    ],
-    "challenge": {
-      "zh": "挑战是",
-      "en": "The challenge is"
-    },
-    "details": [
-      {
-        "id": 1772705140060,
-        "content": {
-          "zh": "这是一个详细段落",
-          "en": "This is a detail paragraph"
-        }
-      }
-    ],
-    "images": [
-      {
-        "id": 1,
-        "url": "/uploads/1773281888590-648571356.png",
-        "caption": {
-          "zh": "测试图片",
-          "en": "Test Image"
-        }
-      },
-      {
-        "id": 1772700356591,
-        "url": "/uploads/1773285280886-510270843.png",
-        "caption": {
-          "zh": "测试2",
-          "en": "test2"
-        }
-      }
-    ],
-    "relatedProjects": [
-      1,
-      2,
-      3
-    ]
-  },
-  {
-    "id": 3,
-    "title": {
-      "zh": "PaperPuppy",
+      "zh": "PaperPuppy - 一只科研好帮手",
       "en": "PaperPuppy - Your loyal research partner!"
     },
     "category": {
-      "zh": "网站开发，AI Agent",
-      "en": "Web Development, AI Agent"
+      "zh": "AI Agent，网站开发，PC客户端开发",
+      "en": "AI Agent，Web Development，PC Client Development"
     },
-    "thumbnail": "/uploads/1773734795959-296079252.jpg",
+    "thumbnail": "/uploads/1773751913966-17907180.png",
     "date": "2025-12-30",
     "tags": [
+      "AI Agent",
       "Web Development"
     ],
     "codeRepos": [
@@ -236,11 +160,21 @@
         "id": 1773732731415,
         "name": "PaperPuppy",
         "url": "https://github.com/LLLLLrf/PaperPuppy"
+      },
+      {
+        "id": 1773814454101,
+        "name": "Download Project Report",
+        "url": "https://github.com/LLLLLrf/PaperPuppy/blob/main/report.docx"
+      },
+      {
+        "id": 1773814467086,
+        "name": "Download Project Slides",
+        "url": "https://github.com/LLLLLrf/PaperPuppy/blob/main/PaperPuppy.pptx"
       }
     ],
     "objective": {
-      "zh": "",
-      "en": ""
+      "zh": "本项目旨在构建一个低成本、高效、可靠且实用的科研辅助系统。核心目标是解决当前学术研究中“文献过载”与“大语言模型幻觉”问题，最终实现了下列任务：\n\n突破 Token 限制： 在免费或低成本API（通常限制 4096 Tokens）的约束下，实现对大量文献的深度分析。\n\n消除幻觉风险： 通过工程化手段和多重校验算法，确保生成的综述基于真实存在的文献证据。\n\n提升响应速度： 利用异步并发技术，将长流程的文献分析时间压缩至用户可接受的范围内（至少60秒以内）。\n\n增强可视化体验： 将枯燥的文本转化为直观的知识图谱、词云和时间轴，提供导出PDF和Markdown文档，导出参考文献，辅助用户快速决策和调研。",
+      "en": "This project aims to build a low-cost, efficient, reliable and practical research assistance system. The core objective is to address the current issues of \"overload of literature\" and \"the illusion of large language models\" in academic research, and ultimately achieves the following tasks: \n\nOvercoming Token Limitations: Achieve in-depth analysis of a large number of documents within the constraints of free or low-cost APIs (which usually limit to 4096 Tokens).\n\nEliminating the Risk of Illusions: Through engineering methods and multiple verification algorithms, ensure that the generated summaries are based on real existing literature evidence.\n\nImproving Response Speed: Utilize asynchronous concurrent technology to compress the long process of document analysis into a time range that is acceptable to users (at least within 60 seconds).\n\nEnhancing Visual Experience: Transform dry text into intuitive knowledge graphs, word clouds and timelines, and provide the option to export PDF and Markdown documents, as well as export references to assist users in making quick decisions and conducting research."
     },
     "technologies": [
       "Vue.js",
@@ -251,18 +185,182 @@
       "zh": "",
       "en": ""
     },
-    "details": [],
+    "details": [
+      {
+        "id": 1773752523681,
+        "content": {
+          "zh": "本项目获得北京大学课程设计一等奖，提出的创新方案已产生一篇待投Workshop论文。目前，本项目已在我校部分硕博研究生实验室开始推广使用，收到许多同学的好评和建议。",
+          "en": "This project won the first prize in the course design competition of Peking University. The innovative solution proposed has resulted in a Workshop paper that is awaiting submission. At present, this project has been introduced and put into use in some graduate student laboratories of our university. It has received many positive comments and suggestions from the students."
+        }
+      },
+      {
+        "id": 1773753407212,
+        "content": {
+          "zh": "随着人工智能技术的飞速发展，科研产出的速度要求越来越高。对于研究人员，尤其是刚刚步入特定领域的初学者而言，如何在海量文献中快速梳理出清晰的脉络、识别关键技术路线，成为了科研工作的一大难题。作为一名硕士研究生，在实验室与同门科研交流时，我意识到，这是一个普遍存在的痛点，大家急需一款能真正提高效率的科研辅助工具。",
+          "en": "With the rapid development of artificial intelligence technology, the speed of scientific research output is becoming increasingly demanding. For researchers, especially beginners who are just entering a specific field, how to quickly sort out a clear framework and identify key technical routes from the vast amount of literature has become a major challenge in scientific research. As a master's student, when communicating with fellow researchers in the laboratory, I realized that this was a common pain point that everyone urgently needed a tool to truly improve efficiency."
+        }
+      },
+      {
+        "id": 1773753594680,
+        "content": {
+          "zh": "现有的解决方案存在明显的两极分化：\n    1. 传统检索工具（如 Google Scholar）：侧重于文献的罗列，缺乏对内容的深度语义理解和自动归纳，用户仍需耗费大量时间阅读摘要。\n    2. 通用大语言模型（如 ChatGPT）：虽然具备强大的文本生成能力，但由于缺乏对实时学术数据库的访问权限以及其生成式机制的固有缺陷，极易产生“幻觉”（Hallucination）。例如，编造不存在的论文标题、错误的作者年份或虚构的实验数据。",
+          "en": "The existing solutions have obvious polarization:\n    1. Traditional search tools (such as Google Scholar): focus on listing of literature, lacking in-depth semantic understanding and automatic summarization of content, and users still need to spend a lot of time reading abstracts.\n    2. General large language models (such as ChatGPT): although they have strong text generation capabilities, due to the lack of access to real-time academic databases and the inherent defects of their generative mechanism, they are prone to \"hallucinations\" (false information). For example, fabricating non-existent paper titles, incorrect author years or fictional experimental data."
+        }
+      },
+      {
+        "id": 1773753778316,
+        "content": {
+          "zh": "此外，市面上现有的 AI 科研辅助工具（如 Connected Papers 等）往往收费高昂，且在处理长文本时受到 Token 数量的限制，难以满足学生群体低成本、高效率的需求。",
+          "en": "In addition, the existing AI research assistance tools on the market (such as Connected Papers, etc.) are often expensive and are limited by the number of tokens when processing long texts, making it difficult to meet the low-cost and high-efficiency needs of the student group."
+        }
+      },
+      {
+        "id": 1773753807980,
+        "content": {
+          "zh": "从功能上来看，PaperPuppy 实现了对学术文献调研流程的全自动化重构。我将多个主流学术数据库（如 arXiv、Google Scholar、OpenAlex 等）进行统一整合，通过多源检索与质量过滤，快速构建高质量文献集合。在此基础上，系统能够自动提取论文中的关键信息（如研究问题、方法、实验设置等），并进一步完成主题聚类分析，最终生成结构清晰、逻辑严谨的综述文章。同时，我还设计了可视化模块，将研究趋势、关键词关系和时间演化过程以知识图谱、时间轴和词云等形式直观呈现，并支持 Markdown 与 PDF 等多格式导出以及中英文双语生成，显著提升了科研工作的效率与体验。",
+          "en": "From a functional perspective, PaperPuppy has achieved a fully automated reconfiguration of the academic literature research process. I have unified and integrated multiple mainstream academic databases (such as arXiv, Google Scholar, OpenAlex, etc.) through multi-source search and quality filtering, quickly constructing a high-quality collection of literature. On this basis, the system can automatically extract key information from the papers (such as research questions, methods, experimental settings, etc.), and further complete topic clustering analysis, ultimately generating a clearly structured and logically rigorous review article. At the same time, I have designed a visualization module, presenting research trends, keyword relationships, and time evolution processes in the form of knowledge graphs, timelines, and word clouds, and supporting multiple formats of export (such as Markdown and PDF) as well as bilingual generation in Chinese and English, significantly enhancing the efficiency and experience of scientific research work."
+        }
+      },
+      {
+        "id": 1773756054249,
+        "content": {
+          "zh": "在技术创新方面，我提出并实现了一个核心的**三级蒸馏机制（Three-stage Distillation）**。在第一阶段，我将原始论文压缩为结构化“知识卡片”，极大降低了 Token 消耗；在第二阶段，通过语义聚类提炼研究主题，形成综述骨架；在第三阶段，再基于骨架生成完整综述。这一分层处理方式有效突破了大模型上下文长度限制，使系统能够在低成本条件下处理大量文献。此外，我结合异步并发处理，将原本耗时较长的文献分析过程优化至约 20 秒内完成，实现了性能上的显著提升。",
+          "en": "In terms of technological innovation, I proposed and implemented a core **three-stage distillation mechanism**. In the first stage, I compressed the original paper into structured \"knowledge cards\", significantly reducing token consumption; in the second stage, through semantic clustering, the research topic was refined to form a review framework; in the third stage, a complete review was generated based on the framework. This hierarchical processing method effectively broke through the context length limitation of large models, enabling the system to handle a large amount of literature at a low cost. Additionally, by combining asynchronous concurrent processing, the previously time-consuming literature analysis process was optimized to be completed within approximately 20 seconds, achieving a significant performance improvement."
+        }
+      },
+      {
+        "id": 1773756071927,
+        "content": {
+          "zh": "针对大语言模型在科研场景中的“幻觉问题”，我构建了一套系统性的 幻觉控制与可信度评估机制。具体而言，我通过多源一致性校验、基于引用频次的加权策略以及规则与模型结合的信息抽取方法，对生成内容进行约束与校验。同时，我设计了多维度置信度评分模型，从摘要信息量、论文新颖性、关键词多样性及相关性等多个角度量化评估结果可靠性，并为每一条结论提供可追溯的原始文献链接。这使得系统生成的综述不仅具备良好的可读性，也具备较高的事实准确性与学术可信度。",
+          "en": "Regarding the \"hallucination problem\" of large language models in scientific research scenarios, I have developed a systematic mechanism for hallucination control and credibility assessment. Specifically, I impose constraints and verify the generated content through multi-source consistency checks, a weighted strategy based on citation frequency, and an information extraction method combining rules and the model. At the same time, I have designed a multi-dimensional confidence scoring model to quantitatively evaluate the reliability of the results from multiple perspectives such as the amount of summary information, the novelty of the paper, the diversity and relevance of keywords, etc., and provide a traceable original literature link for each conclusion. This enables the system-generated review to not only have good readability but also high factual accuracy and academic credibility."
+        }
+      }
+    ],
     "images": [
       {
         "id": 1773732990232,
-        "url": "/uploads/1773734842803-289965024.png",
+        "url": "/uploads/1773752050755-705566391.png",
         "title": {
-          "zh": "产品名海报",
-          "en": "Product Name Poster"
+          "zh": "产品访问入口",
+          "en": "Product access point"
         },
         "description": {
-          "zh": "通过nano banana生成了本产品的标语海报和产品logo形象",
-          "en": "The slogan poster and product logo image of this product were created using nano banana."
+          "zh": "通过nano banana生成了本产品的标语海报和产品logo形象，作为首页入口",
+          "en": "The slogan poster and product logo image for this product were created using nano banana, serving as the homepage entry point."
+        }
+      },
+      {
+        "id": 1773815123995,
+        "url": "/uploads/1773815129900-590418946.png",
+        "title": {
+          "zh": "首页推荐每日热点",
+          "en": "Daily hot topics"
+        },
+        "description": {
+          "zh": "每次打开本工具，会自动爬取OpenAlex一年内的高引用量文章，和arXiv一周内发表的新文章。同时满足新动态和大热点的追踪。",
+          "en": "Each time this tool is opened, it will automatically retrieve the articles with high citation rates within one year from OpenAlex, as well as the newly published articles within one week from arXiv. At the same time, it also tracks the latest developments and major hotspots."
+        }
+      },
+      {
+        "id": 1773751292982,
+        "url": "/uploads/1773752599708-231785481.png",
+        "title": {
+          "zh": "3层蒸馏架构",
+          "en": "Three-layer distillation architecture"
+        },
+        "description": {
+          "zh": "为了压缩token使用量并提高响应速度，我设计了这样的三层蒸馏架构，快速且并行地提取所有文章的关键信息",
+          "en": "In order to reduce the token usage and enhance the response speed, I designed this three-layer distillation architecture to quickly and concurrently extract the key information of all articles."
+        }
+      },
+      {
+        "id": 1773751105749,
+        "url": "/uploads/1773751560086-434776203.png",
+        "title": {
+          "zh": "竞品分析",
+          "en": "Product Research"
+        },
+        "description": {
+          "zh": "在项目初期，我做了上述几种产品的分析调研，发现这类产品在科研领域仍存在诸多问题",
+          "en": "At the beginning of the project, I conducted an analysis and research on these various products, and found that there were still many problems in this type of product in the field of scientific research."
+        }
+      },
+      {
+        "id": 1773751107058,
+        "url": "/uploads/1773751302420-142882244.png",
+        "title": {
+          "zh": "产品特色",
+          "en": "Prodect Feature"
+        },
+        "description": {
+          "zh": "根据竞品存在的不足，我给产品设计了上述几个特色定位，作为核心竞争力",
+          "en": "Based on the shortcomings of the competing products, I have designed the above-mentioned several distinctive features for the product, which serve as its core competitiveness."
+        }
+      }
+    ],
+    "relatedProjects": []
+  },
+  {
+    "id": 3,
+    "title": {
+      "zh": "Echoo 声映",
+      "en": "Echoo"
+    },
+    "category": {
+      "zh": "抖音小程序",
+      "en": "Tiktok Mini Program"
+    },
+    "thumbnail": "/uploads/1773815514385-795645405.png",
+    "date": "2025-08-15",
+    "tags": [
+      "MiniProgram Development",
+      "AI Product"
+    ],
+    "codeRepos": [
+      {
+        "id": 1773815517388,
+        "name": "Echoo",
+        "url": "https://github.com/LLLLLrf/Echoo-DyFrontend"
+      }
+    ],
+    "objective": {
+      "zh": "",
+      "en": ""
+    },
+    "technologies": [
+      "javascript",
+      "ttml",
+      "ttss",
+      "Python"
+    ],
+    "challenge": {
+      "zh": "",
+      "en": ""
+    },
+    "details": [],
+    "images": [
+      {
+        "id": 1773815551402,
+        "url": "/uploads/1773815566132-786041091.png",
+        "title": {
+          "zh": "Logo设计",
+          "en": "Logo Design"
+        },
+        "description": {
+          "zh": "作为一款ai MV生成工具，logo将MV字母融入设计，颜色与波纹体现ai科技和音乐律动",
+          "en": "As an AI-generated MV tool, the logo integrates the letters of the MV into the design, with the colors and waves reflecting the AI technology and the rhythm of music."
+        }
+      },
+      {
+        "id": 1773815647294,
+        "url": "/uploads/1773815664780-57376867.png",
+        "title": {
+          "zh": "技术架构图",
+          "en": "Technical architecture diagram"
+        },
+        "description": {
+          "zh": "本产品的底层技术实现架构图",
+          "en": "The underlying technical implementation architecture diagram of this product"
         }
       }
     ],

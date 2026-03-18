@@ -30,7 +30,7 @@ export default {
 				{{ t(project.title) }}
 			</p>
 			<span
-				class="font-general-medium text-lg text-ternary-dark dark:text-ternary-light"
+				class="font-general-medium text-sm text-gray-600 dark:text-gray-400"
 				>{{ t(project.category) }}</span
 			>
 		</div>
