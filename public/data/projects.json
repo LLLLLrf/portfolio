@@ -337,7 +337,15 @@
       "zh": "",
       "en": ""
     },
-    "details": [],
+    "details": [
+      {
+        "id": 1773821623531,
+        "content": {
+          "zh": "抖音“AI创变者大赛”决赛项目（全国前20），团队成员来自北大、清华、同济共4人。本人作为产品、设计、前端开发者主导参与，共计耗时一个月完成。",
+          "en": "The final project of the \"AI Innovators Competition\" on Douyin (among the top 20 nationwide), with team members from Peking University, Tsinghua University, and Tongji University totaling 4 people. I, as the product, design, and front-end developer, led the participation and completed it within a total of one month."
+        }
+      }
+    ],
     "images": [
       {
         "id": 1773815551402,

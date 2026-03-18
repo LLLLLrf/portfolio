@@ -434,7 +434,9 @@ const cvStorage = multer.diskStorage({
     cb(null, CV_DIR);
   },
   filename: (req, file, cb) => {
-    cb(null, file.originalname);
+    // 生成唯一文件名，避免中文乱码
+    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
   }
 });
 
@@ -563,17 +565,18 @@ app.post('/api/resumes/upload', cvUpload.single('resume'), (req, res) => {
   const MAX_VERSIONS = 20;
   const uploadTime = Date.now();
   
-  const existing = config.configs.find(c => c.fileName === req.file.originalname);
+  const existing = config.configs.find(c => c.originalName === req.file.originalname);
   const newResume = {
     id: existing?.id || Date.now().toString(),
-    fileName: req.file.originalname,
+    fileName: req.file.filename, // 存储生成的唯一文件名
+    originalName: req.file.originalname, // 存储原始文件名用于显示
     alias: existing?.alias || req.file.originalname.replace(/\.[^/.]+$/, ''),
     isCurrent: existing?.isCurrent || (config.configs.length === 0),
     createdAt: uploadTime
   };
   
   if (existing) {
-    const idx = config.configs.findIndex(c => c.fileName === req.file.originalname);
+    const idx = config.configs.findIndex(c => c.originalName === req.file.originalname);
     newResume.createdAt = existing.createdAt || uploadTime;
     config.configs[idx] = newResume;
   } else {
@@ -589,9 +592,9 @@ app.post('/api/resumes/upload', cvUpload.single('resume'), (req, res) => {
       }
       
       config.configs = config.configs.filter(c => c.id !== oldestConfig.id);
-      config.files = config.files.filter(f => f !== oldestConfig.fileName);
+      config.files = config.files.filter(f => f !== oldestConfig.originalName);
       
-      console.log(`已自动删除最老的简历版本: ${oldestConfig.fileName}`);
+      console.log(`已自动删除最老的简历版本: ${oldestConfig.originalName}`);
     }
   }
   
@@ -646,12 +649,13 @@ app.delete('/api/resumes/:id', (req, res) => {
   }
   
   config.configs = config.configs.filter(r => r.id !== req.params.id);
-  config.files = config.files.filter(f => f !== resume.fileName);
   
   const filePath = path.join(CV_DIR, resume.fileName);
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
   }
+  
+  config.files = config.files.filter(f => f !== resume.originalName);
   
   if (config.configs.length > 0 && !config.configs.some(c => c.isCurrent)) {
     config.configs[0].isCurrent = true;

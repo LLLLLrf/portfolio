@@ -505,7 +505,7 @@ export default {
     downloadResume(resume) {
       const link = document.createElement('a');
       link.href = `/files/cv/${encodeURIComponent(resume.fileName)}`;
-      link.download = resume.fileName;
+      link.download = resume.originalName || resume.fileName;
       link.click();
     },
 
@@ -824,7 +824,7 @@ export default {
                 </span>
               </div>
               <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
-                {{ resume.fileName }}
+                {{ resume.originalName || resume.fileName }}
               </p>
               <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
                 上传时间: {{ formatDateTime(resume.createdAt) }}

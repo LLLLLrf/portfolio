@@ -4,7 +4,10 @@ export default {
 	data() {
 		return {
 			selectedImage: null,
-			isModalOpen: false
+			isModalOpen: false,
+			showLeftArrow: false,
+			showRightArrow: false,
+			scrollContainer: null
 		};
 	},
 	methods: {
@@ -25,30 +28,42 @@ export default {
 				this.closeImageModal();
 			}
 		},
-		handleWheel(event) {
-			// 阻止默认的滚轮行为（页面上下滚动）
-			event.preventDefault();
-			// 调整滚动速度，使每个滚轮刻度滚动适量距离
-			const scrollSpeed = 20; // 滚动速度系数，越小滚动越细腻
-			event.currentTarget.scrollLeft += event.deltaY * scrollSpeed;
+		scrollLeft() {
+			if (this.scrollContainer) {
+				this.scrollContainer.scrollBy({ left: -300, behavior: 'smooth' });
+			}
+		},
+		scrollRight() {
+			if (this.scrollContainer) {
+				this.scrollContainer.scrollBy({ left: 300, behavior: 'smooth' });
+			}
+		},
+		updateArrows() {
+			if (!this.scrollContainer) return;
+			
+			const { scrollLeft, scrollWidth, clientWidth } = this.scrollContainer;
+			this.showLeftArrow = scrollLeft > 0;
+			this.showRightArrow = scrollLeft < (scrollWidth - clientWidth);
 		}
 	},
 	mounted() {
 		document.addEventListener('keydown', this.escapeKeyHandler);
-		// 为滚动容器添加鼠标滚轮事件监听器
+		
+		// 等待DOM渲染完成后获取滚动容器
 		this.$nextTick(() => {
-			const scrollContainer = document.querySelector('.scrollbar-visible');
-			if (scrollContainer) {
-				scrollContainer.addEventListener('wheel', this.handleWheel);
+			this.scrollContainer = this.$refs.scrollContainer;
+			if (this.scrollContainer) {
+				// 添加滚动事件监听
+				this.scrollContainer.addEventListener('scroll', this.updateArrows);
+				// 初始检查
+				this.updateArrows();
 			}
 		});
 	},
 	unmounted() {
 		document.removeEventListener('keydown', this.escapeKeyHandler);
-		// 移除鼠标滚轮事件监听器
-		const scrollContainer = document.querySelector('.scrollbar-visible');
-		if (scrollContainer) {
-			scrollContainer.removeEventListener('wheel', this.handleWheel);
+		if (this.scrollContainer) {
+			this.scrollContainer.removeEventListener('scroll', this.updateArrows);
 		}
 	}
 };
@@ -58,7 +73,31 @@ export default {
 	<div class="mt-10 md:mt-12">
 		<!-- Image Horizontal Scroll -->
 		<div class="relative">
-			<div class="flex gap-4 sm:gap-6 md:gap-8 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-visible">
+			<!-- Left Arrow -->
+			<button
+				v-if="showLeftArrow"
+				@click="scrollLeft"
+				class="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow-lg rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 opacity-80 hover:opacity-100"
+				aria-label="Scroll left"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+				</svg>
+			</button>
+			
+			<!-- Right Arrow -->
+			<button
+				v-if="showRightArrow"
+				@click="scrollRight"
+				class="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow-lg rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 opacity-80 hover:opacity-100"
+				aria-label="Scroll right"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+				</svg>
+			</button>
+			
+			<div ref="scrollContainer" class="flex gap-4 sm:gap-6 md:gap-8 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-visible">
 				<div
 					class="group flex-shrink-0 w-80 sm:w-96 md:w-80 snap-start"
 					v-for="projectImage in projectImages"
