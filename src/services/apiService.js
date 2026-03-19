@@ -537,20 +537,37 @@ export const apiService = {
   },
 
   async uploadResume(file) {
+    console.log('apiService uploading file:', {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
+    
     const backendAvailable = await this.checkBackendAvailable();
     if (backendAvailable) {
       try {
         const formData = new FormData();
         formData.append('resume', file);
+        // 使用自定义头部传递文件名，避免编码问题
+        const headers = new Headers();
+        headers.append('X-File-Name', encodeURIComponent(file.name));
         
         const response = await fetch(`${API_BASE_URL}/resumes/upload`, {
           method: 'POST',
+          headers: headers,
           body: formData
         });
-        if (!response.ok) throw new Error('Failed to upload');
-        return await response.json();
+        console.log('Response status:', response.status, response.statusText);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          throw new Error('Failed to upload');
+        }
+        const result = await response.json();
+        console.log('Upload result from server:', result);
+        return result;
       } catch (error) {
-        console.warn('Backend failed, upload not available in local mode');
+        console.warn('Backend failed, upload not available in local mode:', error);
         throw new Error('上传功能需要后端支持');
       }
     }
@@ -645,6 +662,31 @@ export const apiService = {
 
   async setCurrentResumeById(id) {
     return this.setCurrentResume(id);
+  },
+
+  async setResumeFilename(id, newFilename) {
+    const backendAvailable = await this.checkBackendAvailable();
+    if (backendAvailable) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/resumes/${id}/filename`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newFilename })
+        });
+        if (!response.ok) throw new Error('Failed to update');
+        return await response.json();
+      } catch (error) {
+        console.warn('Backend failed, falling back to local mode');
+      }
+    }
+    
+    const configs = this.getResumeConfigsLocal();
+    const idx = configs.findIndex(c => c.id === id);
+    if (idx !== -1) {
+      configs[idx].originalName = newFilename;
+    }
+    localStorage.setItem(STORAGE_KEY_RESUMES, JSON.stringify(configs));
+    return { id, originalName: newFilename };
   },
 
   async changePassword(oldPassword, newPassword) {

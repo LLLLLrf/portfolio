@@ -303,7 +303,7 @@
   {
     "id": 3,
     "title": {
-      "zh": "Echoo 声映",
+      "zh": "Echoo - 声映",
       "en": "Echoo"
     },
     "category": {
@@ -369,6 +369,106 @@
         "description": {
           "zh": "本产品的底层技术实现架构图",
           "en": "The underlying technical implementation architecture diagram of this product"
+        }
+      }
+    ],
+    "relatedProjects": []
+  },
+  {
+    "id": 4,
+    "title": {
+      "zh": "WearWizard - 魔法衣橱",
+      "en": "WearWizard"
+    },
+    "category": {
+      "zh": "软件应用",
+      "en": "Software Application"
+    },
+    "thumbnail": "/uploads/1773823405400-765933867.png",
+    "date": "2024-02-20",
+    "tags": [],
+    "codeRepos": [],
+    "objective": {
+      "zh": "",
+      "en": ""
+    },
+    "technologies": [],
+    "challenge": {
+      "zh": "",
+      "en": ""
+    },
+    "details": [],
+    "images": [
+      {
+        "id": 1773823520590,
+        "url": "/uploads/1773823532912-238250280.png",
+        "title": {
+          "zh": "产品海报图",
+          "en": "Product Poster"
+        },
+        "description": {
+          "zh": "产品图中突出AI衣橱功能，核心面向女性用户",
+          "en": "The product illustration highlights the AI wardrobe function, with the core focus on female users."
+        }
+      },
+      {
+        "id": 1773824502633,
+        "url": "/uploads/1773824523595-341189691.png",
+        "title": {
+          "zh": "产品首页",
+          "en": "Product Homepage"
+        },
+        "description": {
+          "zh": "在首页中，我们展示每日推荐衣橱 (ai上身效果图)、天气等信息",
+          "en": "On the homepage, we display daily recommended wardrobes (virtual appearance effects), weather information, etc."
+        }
+      },
+      {
+        "id": 1773824488025,
+        "url": "/uploads/1773824497651-294439645.png",
+        "title": {
+          "zh": "产品衣橱页",
+          "en": "Product Closet Page"
+        },
+        "description": {
+          "zh": "我们通过AI视觉算法，自动将服饰分类并扁平化，归类成电子衣橱展示",
+          "en": "We use AI visual algorithms to automatically categorize and flatten the clothing, and then classify them into an electronic wardrobe for display."
+        }
+      },
+      {
+        "id": 1773823664347,
+        "url": "/uploads/1773823677687-487341227.png",
+        "title": {
+          "zh": "当前产品痛点与不足",
+          "en": "Current product pain points and shortcomings"
+        },
+        "description": {
+          "zh": "当前产品主要聚焦在购物和社媒，没有关注个人衣橱、AI试衣、每日穿搭推荐等功能",
+          "en": "The current product mainly focuses on shopping and social media, without paying attention to functions such as personal wardrobe management, AI fitting, and daily outfit recommendations."
+        }
+      },
+      {
+        "id": 1773824458631,
+        "url": "/uploads/1773824484122-561234569.png",
+        "title": {
+          "zh": "",
+          "en": ""
+        },
+        "description": {
+          "zh": "",
+          "en": ""
+        }
+      },
+      {
+        "id": 1773825253281,
+        "url": "/uploads/1773825260403-442201694.png",
+        "title": {
+          "zh": "底层AI技术展示",
+          "en": "Presentation of Underlying AI Technology"
+        },
+        "description": {
+          "zh": "",
+          "en": ""
         }
       }
     ],

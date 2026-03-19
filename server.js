@@ -283,6 +283,7 @@ function savePassword(password) {
 
 app.use(cors());
 app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
 const API_ENABLED = true;
 
@@ -468,7 +469,7 @@ function loadCVConfig() {
 
 function saveCVConfig(config) {
   try {
-    fs.writeFileSync(CV_CONFIG_FILE, JSON.stringify(config, null, 2));
+    fs.writeFileSync(CV_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf8');
     return true;
   } catch (error) {
     console.error('Error saving CV config:', error);
@@ -503,7 +504,8 @@ app.get('/api/resumes', (req, res) => {
     return {
       id: existing?.id || fileName.replace(/\.[^/.]+$/, ''),
       fileName: fileName,
-      alias: existing?.alias || fileName.replace(/\.[^/.]+$/, ''),
+      originalName: existing?.originalName || fileName,
+      alias: existing?.alias || (existing?.originalName ? existing.originalName.replace(/\.[^/.]+$/, '') : fileName.replace(/\.[^/.]+$/, '')),
       isCurrent: existing?.isCurrent || false,
       createdAt: existing?.createdAt || Date.now()
     };
@@ -554,56 +556,102 @@ app.delete('/api/upload/image', (req, res) => {
 });
 
 app.post('/api/resumes/upload', cvUpload.single('resume'), (req, res) => {
-  if (!API_ENABLED) {
-    return res.status(403).json({ error: 'API disabled' });
-  }
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded' });
-  }
-  
-  const config = loadCVConfig();
-  const MAX_VERSIONS = 20;
-  const uploadTime = Date.now();
-  
-  const existing = config.configs.find(c => c.originalName === req.file.originalname);
-  const newResume = {
-    id: existing?.id || Date.now().toString(),
-    fileName: req.file.filename, // 存储生成的唯一文件名
-    originalName: req.file.originalname, // 存储原始文件名用于显示
-    alias: existing?.alias || req.file.originalname.replace(/\.[^/.]+$/, ''),
-    isCurrent: existing?.isCurrent || (config.configs.length === 0),
-    createdAt: uploadTime
-  };
-  
-  if (existing) {
-    const idx = config.configs.findIndex(c => c.originalName === req.file.originalname);
-    newResume.createdAt = existing.createdAt || uploadTime;
-    config.configs[idx] = newResume;
-  } else {
-    config.configs.push(newResume);
+  try {
+    console.log('Resume upload endpoint hit');
     
-    if (config.configs.length > MAX_VERSIONS) {
-      const sortedConfigs = [...config.configs].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-      const oldestConfig = sortedConfigs[0];
-      
-      const oldestFilePath = path.join(CV_DIR, oldestConfig.fileName);
-      if (fs.existsSync(oldestFilePath)) {
-        fs.unlinkSync(oldestFilePath);
-      }
-      
-      config.configs = config.configs.filter(c => c.id !== oldestConfig.id);
-      config.files = config.files.filter(f => f !== oldestConfig.originalName);
-      
-      console.log(`已自动删除最老的简历版本: ${oldestConfig.originalName}`);
+    if (!API_ENABLED) {
+      console.log('API disabled');
+      return res.status(403).json({ error: 'API disabled' });
     }
+    if (!req.file) {
+      console.log('No file uploaded');
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    
+    console.log('Uploaded file info:', {
+      originalname: req.file.originalname,
+      encoding: req.file.encoding,
+      mimetype: req.file.mimetype,
+      headers: req.headers
+    });
+    
+    const config = loadCVConfig();
+    const MAX_VERSIONS = 20;
+    const uploadTime = Date.now();
+    
+    // 优先从自定义头部 X-File-Name 读取文件名（URL 编码）
+    let safeOriginalName = req.file.originalname;
+    
+    // 尝试从自定义头部获取文件名
+    if (req.headers['x-file-name']) {
+      try {
+        safeOriginalName = decodeURIComponent(req.headers['x-file-name']);
+        console.log('Got filename from custom header:', safeOriginalName);
+      } catch (e) {
+        console.error('Failed to decode filename from header:', e);
+      }
+    } else {
+      // 如果没有自定义头部，尝试修复原始文件名的编码
+      try {
+        safeOriginalName = Buffer.from(safeOriginalName, 'latin1').toString('utf8');
+        console.log('Converted filename from latin1 to utf8:', safeOriginalName);
+      } catch (e) {
+        console.error('Failed to convert filename encoding:', e);
+      }
+    }
+    
+    console.log('Final safeOriginalName:', safeOriginalName);
+    
+    const existing = config.configs.find(c => c.originalName === safeOriginalName);
+    const safeAlias = safeOriginalName.replace(/\.[^/.]+$/, '');
+    
+    const newResume = {
+      id: existing?.id || Date.now().toString(),
+      fileName: req.file.filename, // 存储生成的唯一文件名
+      originalName: safeOriginalName, // 存储原始文件名用于显示
+      alias: existing?.alias || safeAlias,
+      isCurrent: existing?.isCurrent || (config.configs.length === 0),
+      createdAt: uploadTime
+    };
+    
+    console.log('Created new resume object:', newResume);
+    
+    if (existing) {
+      const idx = config.configs.findIndex(c => c.originalName === safeOriginalName);
+      newResume.createdAt = existing.createdAt || uploadTime;
+      config.configs[idx] = newResume;
+    } else {
+      config.configs.push(newResume);
+      
+      if (config.configs.length > MAX_VERSIONS) {
+        const sortedConfigs = [...config.configs].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+        const oldestConfig = sortedConfigs[0];
+        
+        const oldestFilePath = path.join(CV_DIR, oldestConfig.fileName);
+        if (fs.existsSync(oldestFilePath)) {
+          fs.unlinkSync(oldestFilePath);
+        }
+        
+        config.configs = config.configs.filter(c => c.id !== oldestConfig.id);
+        config.files = config.files.filter(f => f !== oldestConfig.originalName);
+        
+        console.log(`已自动删除最老的简历版本: ${oldestConfig.originalName}`);
+      }
+    }
+    
+    config.files = config.files.includes(safeOriginalName) 
+      ? config.files 
+      : [...config.files, safeOriginalName];
+    
+    console.log('Saving config...');
+    saveCVConfig(config);
+    
+    console.log('Returning response:', newResume);
+    res.json(newResume);
+  } catch (error) {
+    console.error('Error in resume upload:', error);
+    res.status(500).json({ error: 'Internal server error', message: error.message });
   }
-  
-  config.files = config.files.includes(req.file.originalname) 
-    ? config.files 
-    : [...config.files, req.file.originalname];
-  
-  saveCVConfig(config);
-  res.json(newResume);
 });
 
 app.put('/api/resumes/:id/alias', (req, res) => {
@@ -620,6 +668,35 @@ app.put('/api/resumes/:id/alias', (req, res) => {
   resume.alias = req.body.alias;
   saveCVConfig(config);
   res.json(resume);
+});
+
+app.put('/api/resumes/:id/filename', (req, res) => {
+  if (!API_ENABLED) {
+    return res.status(403).json({ error: 'API disabled' });
+  }
+  const config = loadCVConfig();
+  const resume = config.configs.find(r => r.id === req.params.id);
+  
+  if (!resume) {
+    return res.status(404).json({ error: 'Resume not found' });
+  }
+  
+  const { newFilename } = req.body;
+  if (!newFilename) {
+    return res.status(400).json({ error: 'New filename required' });
+  }
+  
+  // 只更新原始文件名，不改变存储的唯一文件名
+  try {
+    // 更新配置
+    resume.originalName = newFilename;
+    saveCVConfig(config);
+    
+    res.json(resume);
+  } catch (error) {
+    console.error('Error updating filename:', error);
+    res.status(500).json({ error: 'Failed to update filename' });
+  }
 });
 
 app.put('/api/resumes/:id/current', (req, res) => {

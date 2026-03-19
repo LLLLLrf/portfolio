@@ -25,6 +25,8 @@ export default {
       resumeVersions: [],
       editingResumeAlias: '',
       editingResumeId: null,
+      editingFilename: '',
+      editingFilenameId: null,
       backendAvailable: false,
       isUploading: false,
       tagsInput: '',
@@ -99,6 +101,16 @@ export default {
     async loadResumes() {
       const config = await apiService.getResumes();
       this.resumeVersions = config.configs || [];
+      this.$nextTick(() => {
+        feather.replace();
+      });
+    },
+    
+    switchTab(tab) {
+      this.activeTab = tab;
+      this.$nextTick(() => {
+        feather.replace();
+      });
     },
     
     createNewProject() {
@@ -433,6 +445,12 @@ export default {
       const file = event.target.files[0];
       if (!file) return;
       
+      console.log('Uploading file from browser:', {
+        name: file.name,
+        type: file.type,
+        size: file.size
+      });
+      
       try {
         this.isUploading = true;
         await apiService.uploadResume(file);
@@ -500,6 +518,30 @@ export default {
     cancelEditAlias() {
       this.editingResumeId = null;
       this.editingResumeAlias = null;
+    },
+    
+    startEditFilename(resume) {
+      this.editingFilenameId = resume.id;
+      this.editingFilename = resume.originalName || resume.fileName;
+    },
+    
+    async saveFilename() {
+      if (this.editingFilenameId && this.editingFilename) {
+        try {
+          await apiService.setResumeFilename(this.editingFilenameId, this.editingFilename);
+          await this.loadResumes();
+        } catch (error) {
+          console.error('Error renaming filename:', error);
+        } finally {
+          this.editingFilenameId = null;
+          this.editingFilename = null;
+        }
+      }
+    },
+    
+    cancelEditFilename() {
+      this.editingFilenameId = null;
+      this.editingFilename = null;
     },
 
     downloadResume(resume) {
@@ -591,7 +633,7 @@ export default {
     <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
       <nav class="flex gap-4">
         <button
-          @click="activeTab = 'projects'"
+          @click="switchTab('projects')"
           :class="[
             'px-4 py-2 font-general-semibold rounded-t-lg transition-colors',
             activeTab === 'projects'
@@ -603,7 +645,7 @@ export default {
           项目管理
         </button>
         <button
-          @click="activeTab = 'about'"
+          @click="switchTab('about')"
           :class="[
             'px-4 py-2 font-general-semibold rounded-t-lg transition-colors',
             activeTab === 'about'
@@ -615,7 +657,7 @@ export default {
           关于我
         </button>
         <button
-          @click="activeTab = 'resumes'"
+          @click="switchTab('resumes')"
           :class="[
             'px-4 py-2 font-general-semibold rounded-t-lg transition-colors',
             activeTab === 'resumes'
@@ -850,6 +892,14 @@ export default {
               </button>
               
               <button
+                @click="startEditFilename(resume)"
+                class="px-3 py-1.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm inline-flex items-center gap-1"
+              >
+                <i data-feather="file" class="w-4 h-4"></i>
+                重命名
+              </button>
+              
+              <button
                 @click="downloadResume(resume)"
                 class="px-3 py-1.5 bg-gray-500 text-white rounded-lg hover:bg-gray-600 text-sm inline-flex items-center gap-1"
               >
@@ -881,6 +931,25 @@ export default {
                 保存
               </button>
               <button @click="cancelEditAlias" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                取消
+              </button>
+            </div>
+          </div>
+          
+          <div v-if="editingFilenameId === resume.id" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="flex items-center gap-3">
+              <input
+                v-model="editingFilename"
+                type="text"
+                class="flex-grow px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-ternary-dark dark:text-ternary-light"
+                placeholder="输入新文件名"
+                @keyup.enter="saveFilename"
+                @keyup.escape="cancelEditFilename"
+              />
+              <button @click="saveFilename" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                保存
+              </button>
+              <button @click="cancelEditFilename" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
                 取消
               </button>
             </div>
