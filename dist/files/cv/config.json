@@ -4,7 +4,8 @@
     "保研简历.pdf",
     "廖若凡工作简历.pdf",
     "廖若凡简历.pdf",
-    "英文简历.pdf"
+    "英文简历.pdf",
+    "廖若凡产品简历.pdf"
   ],
   "configs": [
     {
@@ -18,7 +19,7 @@
       "id": "保研简历",
       "fileName": "保研简历.pdf",
       "alias": "保研简历123",
-      "isCurrent": true,
+      "isCurrent": false,
       "createdAt": 1704153600000
     },
     {
@@ -41,6 +42,14 @@
       "alias": "English Resume",
       "isCurrent": false,
       "createdAt": 1707004800000
+    },
+    {
+      "id": "1773884767041",
+      "fileName": "1773884767033-529793290.pdf",
+      "originalName": "廖若凡产品简历.pdf",
+      "alias": "廖若凡产品简历",
+      "isCurrent": true,
+      "createdAt": 1773884767041
     }
   ]
 }

@@ -58,8 +58,8 @@ export const apiService = {
 
   formatText(text) {
     if (!text) return '';
-    // 处理加粗格式 **text**
-    return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // 处理加粗格式 **text** - 使用类名，让全局样式控制颜色
+    return text.replace(/\*\*(.*?)\*\*/g, '<strong class="md-bold-text">$1</strong>');
   },
 
   async getProject(id) {
@@ -69,7 +69,15 @@ export const apiService = {
         const response = await fetch(`${API_BASE_URL}/projects/${id}`);
         if (!response.ok) throw new Error('Failed to fetch');
         const project = await response.json();
-        // 处理项目详情的加粗格式
+        // 处理所有文本字段的加粗格式
+        if (project.objective) {
+          if (project.objective.zh) project.objective.zh = this.formatText(project.objective.zh);
+          if (project.objective.en) project.objective.en = this.formatText(project.objective.en);
+        }
+        if (project.challenge) {
+          if (project.challenge.zh) project.challenge.zh = this.formatText(project.challenge.zh);
+          if (project.challenge.en) project.challenge.en = this.formatText(project.challenge.en);
+        }
         if (project.details) {
           project.details.forEach(detail => {
             if (detail.content) {
@@ -85,14 +93,24 @@ export const apiService = {
     }
     const projects = await this.getProjectsLocal();
     const project = projects.find(p => p.id === parseInt(id));
-    // 处理项目详情的加粗格式
-    if (project && project.details) {
-      project.details.forEach(detail => {
-        if (detail.content) {
-          if (detail.content.zh) detail.content.zh = this.formatText(detail.content.zh);
-          if (detail.content.en) detail.content.en = this.formatText(detail.content.en);
-        }
-      });
+    // 处理所有文本字段的加粗格式
+    if (project) {
+      if (project.objective) {
+        if (project.objective.zh) project.objective.zh = this.formatText(project.objective.zh);
+        if (project.objective.en) project.objective.en = this.formatText(project.objective.en);
+      }
+      if (project.challenge) {
+        if (project.challenge.zh) project.challenge.zh = this.formatText(project.challenge.zh);
+        if (project.challenge.en) project.challenge.en = this.formatText(project.challenge.en);
+      }
+      if (project.details) {
+        project.details.forEach(detail => {
+          if (detail.content) {
+            if (detail.content.zh) detail.content.zh = this.formatText(detail.content.zh);
+            if (detail.content.en) detail.content.en = this.formatText(detail.content.en);
+          }
+        });
+      }
     }
     return project;
   },

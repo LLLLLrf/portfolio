@@ -22,5 +22,13 @@
     "en": ""
   },
   "clients": [],
-  "avatar": "/uploads/1773741655615-411502900.jpg"
+  "avatar": "/uploads/1773741655615-411502900.jpg",
+  "name": {
+    "zh": "廖若凡",
+    "en": "Liao Ruofan"
+  },
+  "title": {
+    "zh": "北京大学 - 硕士研究生",
+    "en": "Peking University - Master Degree Candidate"
+  }
 }

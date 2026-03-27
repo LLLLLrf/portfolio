@@ -48,7 +48,7 @@ export default {
 			<p
 				class="font-general-medium mt-2 text-lg sm:text-xl  xl:text-2xl text-center sm:text-left leading-none text-gray-400"
 			>
-				A Full-Stack Developer & Design Enthusiast
+				A Full-Stack Developer & Design Enthusiast & Dreaming to be a Product Manager
 			</p>
 			<div class="flex justify-center sm:block">
 				<a

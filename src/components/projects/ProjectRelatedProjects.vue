@@ -7,7 +7,7 @@ export default {
 <template>
 	<div
 		v-if="relatedProject.relatedProjects && relatedProject.relatedProjects.length > 0"
-		class="mt-10 pt-10 sm:pt-14 sm:mt-20 border-t-2 border-primary-light dark:border-secondary-dark"
+		class="mt-10 pt-10 sm:pt-14 sm:mt-20 border-t-2 border-primary-light dark:border-secondary-dark detail-card detail-card-related"
 	>
 		<p
 			class="font-general-regular text-primary-dark dark:text-primary-light text-2xl sm:text-3xl font-bold mb-8 sm:mb-10 text-left animate-fade-in"
@@ -20,11 +20,11 @@ export default {
 				v-for="item in relatedProject.relatedProjects" 
 				:key="item.id"
 				:to="`/projects/${item.id}`"
-				class="group relative overflow-hidden rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+				class="group relative overflow-hidden rounded-xl shadow-sm hover:shadow-lg transition-all duration-300"
 			>
 				<img
 					:src="item.img"
-					class="w-full h-48 sm:h-56 object-cover rounded-xl transition-transform duration-500 group-hover:scale-105"
+					class="w-full h-48 sm:h-56 object-cover rounded-xl transition-opacity duration-300"
 					:alt="item.title"
 					loading="lazy"
 				/>

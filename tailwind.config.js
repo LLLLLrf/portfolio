@@ -17,9 +17,18 @@ module.exports = {
 				'secondary-light': '#FFFFFF',
 				'ternary-light': '#f6f7f8',
 
-				'primary-dark': '#0D2438',
-				'secondary-dark': '#102D44',
-				'ternary-dark': '#1E3851',
+				'primary-dark': '#050816',
+				'secondary-dark': '#0B1020',
+				'ternary-dark': '#111827',
+
+				'accent-cyan': '#06b6d4',
+				'accent-purple': '#8b5cf6',
+				'accent-pink': '#ec4899',
+				'accent-neon': '#22d3ee',
+			},
+			boxShadow: {
+				'neon-cyan': '0 0 10px rgba(6, 182, 212, 0.3), 0 0 20px rgba(6, 182, 212, 0.1)',
+				'neon-purple': '0 0 10px rgba(139, 92, 246, 0.3), 0 0 20px rgba(139, 92, 246, 0.1)',
 			},
 			container: {
 				padding: {

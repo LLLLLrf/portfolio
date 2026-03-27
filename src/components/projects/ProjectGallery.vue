@@ -70,7 +70,7 @@ export default {
 </script>
 
 <template>
-	<div class="mt-10 md:mt-12">
+	<div class="mt-10 md:mt-12 detail-card detail-card-gallery">
 		<!-- Image Horizontal Scroll -->
 		<div class="relative">
 			<!-- Left Arrow -->
@@ -97,36 +97,36 @@ export default {
 				</svg>
 			</button>
 			
-			<div ref="scrollContainer" class="flex gap-4 sm:gap-6 md:gap-8 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-visible">
+			<div ref="scrollContainer" class="flex gap-4 sm:gap-6 md:gap-8 overflow-x-auto pb-6 snap-x snap-mandatory gallery-scrollbar">
 				<div
 					class="group flex-shrink-0 w-80 sm:w-96 md:w-80 snap-start"
 					v-for="projectImage in projectImages"
 					:key="projectImage.id"
 				>
 					<div 
-						class="bg-secondary-light dark:bg-ternary-dark rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer h-full"
+						class="bg-secondary-light dark:bg-ternary-dark rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer h-full gallery-card"
 						@click="openImageModal(projectImage)"
 					>
 						<div class="relative overflow-hidden">
 							<img
 								:src="projectImage.img"
-								class="w-full h-64 sm:h-72 object-cover rounded-t-xl transition-transform duration-500 group-hover:scale-105"
+								class="w-full h-64 sm:h-72 object-cover rounded-t-xl gallery-image"
 								:alt="projectImage.title"
 								loading="lazy"
 							/>
-							<div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-								<div class="transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-									<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center">
+								<div class="opacity-0 group-hover:opacity-100 transition-all duration-300 mb-4">
+									<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
 									</svg>
 								</div>
 							</div>
 						</div>
 						<div class="p-4">
-						<p class="font-general-medium text-base sm:text-lg text-ternary-dark dark:text-ternary-light text-center">
+							<p class="gallery-title text-base sm:text-lg text-center">
 							{{ projectImage.title || projectImage.caption }}
 						</p>
-					</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -135,12 +135,12 @@ export default {
 		<!-- Image Modal -->
 		<div 
 			v-if="isModalOpen && selectedImage" 
-			class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4 transition-opacity duration-300"
+			class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 transition-opacity duration-400 modal-overlay"
 			@click="closeImageModal"
 		>
 			<div 
-				class="relative transition-all duration-500 ease-out transform"
-				:class="isModalOpen ? 'scale-100 opacity-100' : 'scale-90 opacity-0'"
+				class="relative transition-all duration-500 ease-out transform modal-content"
+				:class="isModalOpen ? 'modal-open' : 'modal-closed'"
 				@click.stop
 			>
 				<div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden max-w-5xl">
@@ -148,12 +148,12 @@ export default {
 						<img 
 							:src="selectedImage.img" 
 							:alt="selectedImage.title"
-							class="w-full h-auto max-h-[75vh] object-contain"
+							class="w-full h-auto max-h-[75vh] object-contain modal-image"
 							@click.stop
 						/>
 						<button 
 							@click="closeImageModal"
-							class="absolute top-3 right-3 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110"
+							class="absolute top-3 right-3 bg-white/90 dark:bg-gray-700/90 hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-2 rounded-full shadow-lg transition-all duration-300 backdrop-blur-sm"
 							aria-label="Close"
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -176,11 +176,128 @@ export default {
 </template>
 
 <style scoped>
-@keyframes fadeIn {
-	to {
-		transform: scale(1);
-		opacity: 1;
+/* Gallery Scrollbar - Custom Style */
+.gallery-scrollbar {
+	scrollbar-width: auto;
+	scrollbar-color: linear-gradient(90deg, #06b6d4, #8b5cf6, #ec4899) transparent;
+	-ms-overflow-style: auto;
+}
+
+.gallery-scrollbar::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+.gallery-scrollbar::-webkit-scrollbar-track {
+	background: rgba(31, 41, 55, 0.3);
+	border-radius: 4px;
+}
+
+.gallery-scrollbar::-webkit-scrollbar-thumb {
+	background: linear-gradient(90deg, #06b6d4, #8b5cf6, #ec4899);
+	border-radius: 4px;
+	opacity: 1 !important;
+	visibility: visible !important;
+	transition: all 0.3s ease;
+}
+
+.gallery-scrollbar::-webkit-scrollbar-thumb:hover {
+	background: linear-gradient(90deg, #0891b2, #7c3aed, #db2777);
+	box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+}
+
+/* Gallery Card Hover Effect */
+.gallery-card {
+	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gallery-card:hover {
+	box-shadow: 0 20px 40px -15px rgba(6, 182, 212, 0.3), 0 20px 40px -15px rgba(139, 92, 246, 0.2);
+}
+
+/* Light mode - no dark shadow */
+@media (prefers-color-scheme: light) {
+	.gallery-card:hover {
+		box-shadow: 0 10px 30px -10px rgba(6, 182, 212, 0.15), 0 10px 30px -10px rgba(139, 92, 246, 0.1);
 	}
+}
+
+/* Gallery Image Effect */
+.gallery-image {
+	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	filter: brightness(0.95);
+}
+
+.gallery-card:hover .gallery-image {
+	filter: brightness(1.05);
+}
+
+/* Gallery Title - Ellipsis */
+.gallery-title {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 100%;
+	font-weight: 800;
+	color: #111827;
+	transition: all 0.3s ease;
+}
+
+.dark .gallery-title {
+	color: #f9fafb;
+}
+
+.gallery-card:hover .gallery-title {
+	background: linear-gradient(90deg, #06b6d4, #8b5cf6, #ec4899);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	letter-spacing: 0.5px;
+}
+
+/* Modal Animations */
+.modal-overlay {
+	backdrop-filter: blur(8px);
+}
+
+.modal-content {
+	opacity: 0;
+	transform: scale(0.8) rotateX(10deg);
+	filter: blur(10px);
+}
+
+.modal-open {
+	opacity: 1;
+	transform: scale(1) rotateX(0deg);
+	filter: blur(0);
+	animation: modalZoomIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-closed {
+	opacity: 0;
+	transform: scale(0.9) rotateX(-5deg);
+	filter: blur(5px);
+}
+
+@keyframes modalZoomIn {
+	0% {
+		opacity: 0;
+		transform: scale(0.7) rotateX(15deg);
+		filter: blur(20px);
+	}
+	50% {
+		transform: scale(1.05) rotateX(-2deg);
+		filter: blur(0);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1) rotateX(0deg);
+		filter: blur(0);
+	}
+}
+
+.modal-image {
+	transition: all 0.3s ease;
 }
 
 /* Image loading placeholder */
@@ -190,43 +307,5 @@ img {
 
 img.loading {
 	opacity: 0.5;
-}
-
-.scrollbar-visible {
-	scrollbar-width: thin;
-	scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
-	-ms-overflow-style: auto;
-}
-
-.scrollbar-visible::-webkit-scrollbar {
-	width: 6px;
-	height: 6px;
-}
-
-.scrollbar-visible::-webkit-scrollbar-track {
-	background: transparent;
-}
-
-.scrollbar-visible::-webkit-scrollbar-thumb {
-	background-color: rgba(156, 163, 175, 0.5);
-	border-radius: 3px;
-	opacity: 1 !important;
-	visibility: visible !important;
-}
-
-.scrollbar-visible::-webkit-scrollbar-thumb:hover {
-	background-color: rgba(156, 163, 175, 0.7);
-}
-
-.dark .scrollbar-visible {
-	scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
-}
-
-.dark .scrollbar-visible::-webkit-scrollbar-thumb {
-	background-color: rgba(75, 85, 99, 0.5);
-}
-
-.dark .scrollbar-visible::-webkit-scrollbar-thumb:hover {
-	background-color: rgba(75, 85, 99, 0.7);
 }
 </style>
