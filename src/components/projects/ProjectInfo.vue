@@ -122,17 +122,17 @@ export default {
 /* Ensure strong tags get proper styling */
 :deep(.md-bold-text) {
 	font-weight: 800 !important;
-	color: #06b6d4 !important;
+	color: #0891b2 !important;
 }
 
 .dark :deep(.md-bold-text) {
-	color: #53e8ff !important;
+	color: #06b6d4 !important;
 }
 </style>
 
 <style>
 /* Global style for dark mode - ensure neon color */
 .dark .md-bold-text {
-	color: #53e8ff !important;
+	color: #06b6d4 !important;
 }
 </style>

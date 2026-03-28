@@ -182,10 +182,10 @@ export default {
         relatedProjects: projectCopy.relatedProjects || []
       };
       this.isProjectModalOpen = true;
-      // 重新初始化图标
-      this.$nextTick(() => {
+      // 重新初始化图标 - 使用 setTimeout 确保 DOM 完全渲染
+      setTimeout(() => {
         feather.replace();
-      });
+      }, 100);
     },
     
     async deleteProject(id) {
@@ -224,6 +224,10 @@ export default {
         id: Date.now(),
         content: { zh: '', en: '' }
       });
+      // 重新初始化图标
+      setTimeout(() => {
+        feather.replace();
+      }, 100);
     },
     
     removeDetail(index) {
@@ -235,6 +239,10 @@ export default {
         const temp = this.editingProject.details[index];
         this.editingProject.details[index] = this.editingProject.details[index - 1];
         this.editingProject.details[index - 1] = temp;
+        // 重新初始化图标
+        setTimeout(() => {
+          feather.replace();
+        }, 50);
       }
     },
     
@@ -243,6 +251,10 @@ export default {
         const temp = this.editingProject.details[index];
         this.editingProject.details[index] = this.editingProject.details[index + 1];
         this.editingProject.details[index + 1] = temp;
+        // 重新初始化图标
+        setTimeout(() => {
+          feather.replace();
+        }, 50);
       }
     },
     

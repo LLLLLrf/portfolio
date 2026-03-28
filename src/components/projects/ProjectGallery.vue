@@ -49,6 +49,25 @@ export default {
 			if (event.key === 'Escape' && this.isModalOpen) {
 				this.closeImageModal();
 			}
+			// 键盘左右箭头切换图片
+			if (event.key === 'ArrowLeft' && this.isModalOpen) {
+				this.prevImage();
+			}
+			if (event.key === 'ArrowRight' && this.isModalOpen) {
+				this.nextImage();
+			}
+		},
+		nextImage() {
+			const currentIndex = this.projectImages.findIndex(img => img.id === this.selectedImage.id);
+			if (currentIndex < this.projectImages.length - 1) {
+				this.selectedImage = this.projectImages[currentIndex + 1];
+			}
+		},
+		prevImage() {
+			const currentIndex = this.projectImages.findIndex(img => img.id === this.selectedImage.id);
+			if (currentIndex > 0) {
+				this.selectedImage = this.projectImages[currentIndex - 1];
+			}
 		},
 		scrollLeft() {
 			if (this.scrollContainer) {
@@ -180,6 +199,28 @@ export default {
 			>
 				<div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden max-w-5xl">
 					<div class="relative">
+						<!-- Left Arrow -->
+						<button
+							@click="prevImage"
+							class="absolute left-3 top-1/2 -translate-y-1/2 z-10 bg-white/90 dark:bg-gray-700/90 hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-2 rounded-full shadow-lg transition-all duration-300 backdrop-blur-sm"
+							aria-label="Previous image"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+							</svg>
+						</button>
+						
+						<!-- Right Arrow -->
+						<button
+							@click="nextImage"
+							class="absolute right-3 top-1/2 -translate-y-1/2 z-10 bg-white/90 dark:bg-gray-700/90 hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-2 rounded-full shadow-lg transition-all duration-300 backdrop-blur-sm"
+							aria-label="Next image"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+							</svg>
+						</button>
+						
 						<!-- Skeleton Loader for Modal -->
 						<SkeletonLoader 
 							v-if="!isImageLoaded(selectedImage.id)" 
