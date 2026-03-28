@@ -403,7 +403,10 @@
         }
       }
     ],
-    "relatedProjects": []
+    "relatedProjects": [
+      4,
+      5
+    ]
   },
   {
     "id": 4,
@@ -412,8 +415,8 @@
       "en": "PaperPuppy - Your loyal research partner!"
     },
     "category": {
-      "zh": "AI Agent，网站开发，PC客户端开发",
-      "en": "AI Agent，Web Development，PC Client Development"
+      "zh": "AI Agent，网站开发，PC客户端",
+      "en": "AI Agent，Web Development，PC Client"
     },
     "thumbnail": "/uploads/1774254417876-834748301.png",
     "date": "2025-12-30",
@@ -568,5 +571,36 @@
       1,
       2
     ]
+  },
+  {
+    "id": 5,
+    "title": {
+      "zh": "DreamTalk - 与梦对话机",
+      "en": "DreamTalk"
+    },
+    "category": {
+      "zh": "AI 硬件, AI Agent, 微信小程序",
+      "en": "AI Hardware, AI Agent, Wechat Miniprogram"
+    },
+    "thumbnail": "/uploads/1774682707396-489000408.jpg",
+    "date": "2025-11-01",
+    "tags": [
+      "AI Hardware",
+      "AI Agent",
+      "Wechat Miniprogram"
+    ],
+    "codeRepos": [],
+    "objective": {
+      "zh": "",
+      "en": ""
+    },
+    "technologies": [],
+    "challenge": {
+      "zh": "",
+      "en": ""
+    },
+    "details": [],
+    "images": [],
+    "relatedProjects": []
   }
 ]

@@ -3,14 +3,14 @@
     {
       "id": 1,
       "bio": {
-        "zh": "Hi，欢迎来到我的作品集网站，我是**廖若凡**，北京大学计算机硕士研究生在读。本硕5年的时间里，我共计参与开发了软件网站10余个，拥有软件著作权3项。曾在**腾讯ieg图灵实验室 (Turing Lab) **任全栈算法工程师，参与云游戏的图像算法和自动化测试Agent开发，在广东联通产业互联网参与搭建百万级工业质检工作流，优化质检视觉算法。此外，我共参与创业项目两次，月流水最高达10w元。曾作为产品、设计、前端开发成员参与字节跳动举办的黑客松竞赛“AI创变者大赛”进入总决赛（全国前20）。",
-        "en": "Hi, welcome to my portfolio website. I'm **Liao Ruofan**, a master's student in computer science at Peking University. During my 5-year period of undergraduate and postgraduate studies, I have participated in the development of over 10 software websites and hold 3 software copyrights. I once worked as a full-stack algorithm engineer at **Tencent Turing Lab**, participating in the development of image algorithms and automated testing agents for cloud games. I also participated in the construction of a million-level industrial quality inspection workflow for Guangdong Unicom Industrial Internet, optimizing the quality inspection visual algorithms. Additionally, I have been involved in two entrepreneurial projects, with the highest monthly revenue reaching 100,000 yuan. I also served as a member of the product, design, and front-end development teams in the ByteDance hackathon competition \"AI Innovators Challenge\", reaching the finals (ranked among the top 20 nationwide)."
+        "zh": "Hi，欢迎来到我的作品集网站，我是廖若凡，22岁，**北京大学计算机硕士研究生在读**。本硕5年的时间里，我共计参与开发了软件网站10余个，拥有软件著作权3项。曾在**腾讯ieg图灵实验室 (Turing Lab) **任全栈算法工程师，参与云游戏的图像算法和自动化测试Agent开发，在广东联通产业互联网参与搭建百万级工业质检工作流，优化质检视觉算法。此外，我共参与**创业项目两次，月流水最高达10w元**。曾作为产品、设计、前端开发成员参与字节跳动举办的黑客松竞赛**“AI创变者大赛”进入总决赛（全国前20）**，团队获得芒果TV合作邀约。",
+        "en": "Hi, welcome to my portfolio website. I'm Liao Ruofan, 22 years old, a master's student in computer science at **Peking University**. During my 5-year period of undergraduate and postgraduate studies, I have participated in the development of over 10 software websites and hold 3 software copyrights. I once worked as a full-stack algorithm engineer at **Tencent Turing Lab**, participating in the development of image algorithms and automated testing agents for cloud games. I also participated in the construction of a million-level industrial quality inspection workflow for Guangdong Unicom Industrial Internet, optimizing the quality inspection visual algorithms. Additionally, I have been involved in two entrepreneurial projects, with the highest monthly revenue reaching 100,000 yuan. I also served as a member of the product, design, and front-end development teams in the ByteDance hackathon competition \"AI Innovators Challenge\", reaching the finals (ranked among the top 20 nationwide), Our team received a cooperation invitation from MangoTV."
       }
     },
     {
       "id": 1773282826964,
       "bio": {
-        "zh": "本网站是我在开源项目基础上通过vibe coding二次开发而来，为静态网站添加了后台管理系统并对前端进行修改优化。希望通过简单易懂的图形化界面，让每个没有代码基础的人也能快速部署自己的个人网站和作品集。",
+        "zh": "本网站是我在开源项目基础上通过vibe coding二次开发而来，重新设计了页面ui动效，为静态网站添加了后台管理系统。希望通过简单易懂的图形化界面，让每个没有代码基础的人也能快速部署自己的个人网站和作品集。",
         "en": "This website was developed by me based on an open-source project through the second-level development by vibe coding. It adds a backend management system to the static website and modifies and optimizes the front end. I hope that through a simple and understandable graphical interface, everyone without a coding background can quickly deploy their own personal websites and portfolios."
       }
     }
@@ -22,5 +22,9 @@
     "en": ""
   },
   "clients": [],
-  "avatar": "/uploads/1773741655615-411502900.jpg"
+  "avatar": "/uploads/1773741655615-411502900.jpg",
+  "personalInfo": {
+    "zh": "廖若凡｜北京大学25级计算机硕士",
+    "en": "Ruofan Liao｜PKU Msc in CS"
+  }
 }

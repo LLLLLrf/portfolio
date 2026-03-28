@@ -97,6 +97,10 @@ export default {
       if (!this.aboutMeData.avatar) {
         this.aboutMeData.avatar = '/assets/images/profile.jpg';
       }
+      // 确保personalInfo字段存在
+      if (!this.aboutMeData.personalInfo) {
+        this.aboutMeData.personalInfo = { zh: '', en: '' };
+      }
     },
     async loadResumes() {
       const config = await apiService.getResumes();
@@ -1477,6 +1481,37 @@ export default {
                   type="text"
                   placeholder="或输入图片URL"
                   class="w-full mt-2 px-3 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- 个人信息编辑 -->
+          <div class="mb-6">
+            <h3 class="font-general-semibold text-xl text-ternary-dark dark:text-ternary-light mb-4">
+              个人信息（照片下方）
+            </h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                  个人信息 (中文)
+                </label>
+                <input
+                  v-model="aboutMeData.personalInfo.zh"
+                  type="text"
+                  placeholder="例如：北京大学 | 计算机硕士 | 2025"
+                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+                />
+              </div>
+              <div>
+                <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                  个人信息 (English)
+                </label>
+                <input
+                  v-model="aboutMeData.personalInfo.en"
+                  type="text"
+                  placeholder="e.g. Peking University | M.S. in CS | 2025"
+                  class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
                 />
               </div>
             </div>
