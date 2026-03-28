@@ -1,5 +1,8 @@
 <script>
+import SkeletonLoader from '@/components/shared/SkeletonLoader.vue';
+
 export default {
+	components: { SkeletonLoader },
 	props: ['projectImages'],
 	data() {
 		return {
@@ -7,10 +10,29 @@ export default {
 			isModalOpen: false,
 			showLeftArrow: false,
 			showRightArrow: false,
-			scrollContainer: null
+			scrollContainer: null,
+			loadedImages: new Set()
 		};
 	},
 	methods: {
+		checkAllImagesLoaded() {
+			this.projectImages.forEach(img => {
+				const image = new Image();
+				image.src = img.img;
+				if (image.complete) {
+					this.loadedImages.add(img.id);
+				}
+			});
+		},
+		onImageLoad(imageId) {
+			this.loadedImages.add(imageId);
+		},
+		onImageError(imageId) {
+			this.loadedImages.add(imageId);
+		},
+		isImageLoaded(imageId) {
+			return this.loadedImages.has(imageId);
+		},
 		openImageModal(image) {
 			this.selectedImage = image;
 			this.isModalOpen = true;
@@ -48,6 +70,7 @@ export default {
 	},
 	mounted() {
 		document.addEventListener('keydown', this.escapeKeyHandler);
+		this.checkAllImagesLoaded();
 		
 		// 等待DOM渲染完成后获取滚动容器
 		this.$nextTick(() => {
@@ -108,11 +131,23 @@ export default {
 						@click="openImageModal(projectImage)"
 					>
 						<div class="relative overflow-hidden">
+							<!-- Skeleton Loader -->
+							<SkeletonLoader 
+								v-if="!isImageLoaded(projectImage.id)" 
+								width="100%" 
+								height="18rem" 
+								rounded="lg"
+							/>
+							
+							<!-- Image -->
 							<img
+								v-show="isImageLoaded(projectImage.id)"
 								:src="projectImage.img"
-								class="w-full h-64 sm:h-72 object-cover rounded-t-xl gallery-image"
+								class="w-full h-64 sm:h-72 object-cover rounded-t-xl gallery-image fade-in"
 								:alt="projectImage.title"
 								loading="lazy"
+								@load="onImageLoad(projectImage.id)"
+								@error="onImageError(projectImage.id)"
 							/>
 							<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center">
 								<div class="opacity-0 group-hover:opacity-100 transition-all duration-300 mb-4">
@@ -145,11 +180,22 @@ export default {
 			>
 				<div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden max-w-5xl">
 					<div class="relative">
+						<!-- Skeleton Loader for Modal -->
+						<SkeletonLoader 
+							v-if="!isImageLoaded(selectedImage.id)" 
+							width="100%" 
+							height="75vh" 
+							rounded="xl"
+						/>
+						
 						<img 
+							v-show="isImageLoaded(selectedImage.id)"
 							:src="selectedImage.img" 
 							:alt="selectedImage.title"
-							class="w-full h-auto max-h-[75vh] object-contain modal-image"
+							class="w-full h-auto max-h-[75vh] object-contain modal-image fade-in"
 							@click.stop
+							@load="onImageLoad(selectedImage.id)"
+							@error="onImageError(selectedImage.id)"
 						/>
 						<button 
 							@click="closeImageModal"
@@ -176,6 +222,19 @@ export default {
 </template>
 
 <style scoped>
+.fade-in {
+	animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
 /* Gallery Scrollbar - Custom Style */
 .gallery-scrollbar {
 	scrollbar-width: auto;

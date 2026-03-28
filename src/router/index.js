@@ -40,12 +40,21 @@ const routes = [
 		},
 	},
 	{
-		path: '/contact',
-		name: 'Contact',
+		path: '/gallery',
+		name: 'Gallery',
 		component: () =>
-			import(/* webpackChunkName: "projects" */ '../views/Contact.vue'),
+			import(/* webpackChunkName: "gallery" */ '../views/Gallery.vue'),
 		meta: {
-			title: 'Stoman - Contact',
+			title: 'Stoman - Gallery',
+		},
+	},
+	{
+		path: '/resume',
+		name: 'Resume',
+		component: () =>
+			import(/* webpackChunkName: "resume" */ '../views/Resume.vue'),
+		meta: {
+			title: 'Stoman - Resume',
 		},
 	},
 	{

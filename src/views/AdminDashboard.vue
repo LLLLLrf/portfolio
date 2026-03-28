@@ -1,4 +1,5 @@
 <script>
+const API_BASE_URL = 'http://localhost:3002/api';
 import { apiService } from '../services/apiService';
 import { useLanguage } from '../composables/useLanguage';
 import { useRouter } from 'vue-router';
@@ -21,7 +22,9 @@ export default {
       editingProject: null,
       isProjectModalOpen: false,
       isAboutModalOpen: false,
+      isGalleryModalOpen: false,
       aboutMeData: null,
+      configData: null,
       resumeVersions: [],
       editingResumeAlias: '',
       editingResumeId: null,
@@ -31,7 +34,9 @@ export default {
       isUploading: false,
       tagsInput: '',
       technologiesInput: '',
-      relatedProjectsInput: ''
+      relatedProjectsInput: '',
+      galleryImages: [],
+      editingGalleryImage: null
     };
   },
   watch: {
@@ -73,6 +78,8 @@ export default {
     await this.loadProjects();
     await this.loadAboutMe();
     await this.loadResumes();
+    await this.loadConfig();
+    await this.loadGallery();
     feather.replace();
   },
   methods: {
@@ -445,6 +452,21 @@ export default {
       this.isAboutModalOpen = false;
     },
 
+    async loadConfig() {
+      this.configData = await apiService.getConfig();
+      // 确保extraSections字段存在
+      if (!this.configData.extraSections) {
+        this.configData.extraSections = {
+          gallery: { enabled: false },
+          resume: { enabled: false, selectedResumeId: null }
+        };
+      }
+    },
+
+    saveConfig() {
+      apiService.saveConfig(this.configData);
+    },
+
     async handleResumeUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -603,6 +625,72 @@ export default {
         console.error('Update project order error:', error);
         alert('更新项目排序失败，请重试');
       }
+    },
+
+    async loadGallery() {
+      this.galleryImages = await apiService.getGallery();
+      this.$nextTick(() => {
+        feather.replace();
+      });
+    },
+
+    createNewGalleryImage() {
+      this.editingGalleryImage = {
+        id: null,
+        url: '',
+        title: { zh: '', en: '' },
+        description: { zh: '', en: '' }
+      };
+      this.isGalleryModalOpen = true;
+    },
+
+    editGalleryImage(image) {
+      this.editingGalleryImage = JSON.parse(JSON.stringify(image));
+      this.isGalleryModalOpen = true;
+    },
+
+    async deleteGalleryImage(id) {
+      if (confirm('确定要删除这张图片吗？')) {
+        await apiService.deleteGalleryImage(id);
+        await this.loadGallery();
+      }
+    },
+
+    async saveGalleryImage() {
+      await apiService.saveGalleryImage(this.editingGalleryImage);
+      this.isGalleryModalOpen = false;
+      this.editingGalleryImage = null;
+      await this.loadGallery();
+    },
+
+    async handleGalleryImageUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        try {
+          // 删除旧图片
+          const oldImageUrl = this.editingGalleryImage.url;
+          if (oldImageUrl && oldImageUrl.startsWith('/uploads/')) {
+            try {
+              await fetch(`${API_BASE_URL}/upload/image`, {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ filename: oldImageUrl.replace('/uploads/', '') })
+              });
+            } catch (error) {
+              console.error('Failed to delete old image:', error);
+            }
+          }
+          
+          // 上传新图片
+          const result = await apiService.uploadImage(file);
+          this.editingGalleryImage.url = result.url;
+        } catch (error) {
+          alert('图片上传失败，请重试');
+          console.error('Image upload error:', error);
+        }
+      }
     }
   }
 };
@@ -671,6 +759,30 @@ export default {
         >
           <i data-feather="file-text" class="w-4 h-4 inline mr-2"></i>
           简历管理
+        </button>
+        <button
+          @click="switchTab('gallery')"
+          :class="[
+            'px-4 py-2 font-general-semibold rounded-t-lg transition-colors',
+            activeTab === 'gallery'
+              ? 'bg-blue-500 text-white'
+              : 'text-ternary-dark dark:text-ternary-light hover:bg-gray-100 dark:hover:bg-gray-800'
+          ]"
+        >
+          <i data-feather="image" class="w-4 h-4 inline mr-2"></i>
+          Gallery管理
+        </button>
+        <button
+          @click="switchTab('extras')"
+          :class="[
+            'px-4 py-2 font-general-semibold rounded-t-lg transition-colors',
+            activeTab === 'extras'
+              ? 'bg-blue-500 text-white'
+              : 'text-ternary-dark dark:text-ternary-light hover:bg-gray-100 dark:hover:bg-gray-800'
+          ]"
+        >
+          <i data-feather="settings" class="w-4 h-4 inline mr-2"></i>
+          额外板块
         </button>
       </nav>
     </div>
@@ -958,6 +1070,153 @@ export default {
               </button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="activeTab === 'gallery'">
+      <div class="mb-6">
+        <button
+          @click="createNewGalleryImage"
+          class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-general-semibold"
+        >
+          <i data-feather="plus" class="w-4 h-4 inline mr-2"></i>
+          添加新图片
+        </button>
+      </div>
+
+      <div v-if="galleryImages.length === 0" class="bg-secondary-light dark:bg-ternary-dark rounded-xl shadow-lg p-12 text-center">
+        <i data-feather="image" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+        <p class="text-ternary-dark dark:text-ternary-light text-lg">暂无图片</p>
+        <p class="text-gray-500 dark:text-gray-400 mt-2">
+          点击上方按钮添加新图片
+        </p>
+      </div>
+
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          v-for="image in galleryImages"
+          :key="image.id"
+          class="bg-secondary-light dark:bg-ternary-dark rounded-xl shadow-lg overflow-hidden"
+        >
+          <div class="relative">
+            <img :src="image.url" class="w-full h-48 object-cover" :alt="t(image.title)" />
+          </div>
+          <div class="p-4">
+            <h4 class="font-general-semibold text-lg text-ternary-dark dark:text-ternary-light mb-2">
+              {{ t(image.title) }}
+            </h4>
+            <p v-if="t(image.description)" class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              {{ t(image.description) }}
+            </p>
+            <div class="flex gap-2">
+              <button
+                @click="editGalleryImage(image)"
+                class="flex-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm inline-flex items-center justify-center gap-1"
+              >
+                <i data-feather="edit" class="w-4 h-4"></i>
+                编辑
+              </button>
+              <button
+                @click="deleteGalleryImage(image.id)"
+                class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm inline-flex items-center gap-1"
+              >
+                <i data-feather="trash" class="w-4 h-4"></i>
+                删除
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="activeTab === 'extras'">
+      <div class="bg-secondary-light dark:bg-ternary-dark rounded-xl shadow-lg p-6">
+        <h3 class="font-general-semibold text-xl text-ternary-dark dark:text-ternary-light mb-6">额外板块设置</h3>
+        
+        <div class="space-y-8">
+          <!-- Gallery 板块设置 -->
+          <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h4 class="font-general-semibold text-lg text-ternary-dark dark:text-ternary-light">Gallery</h4>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">展示所有项目图片</p>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-gray-500 dark:text-gray-400">{{ configData?.extraSections?.gallery?.enabled ? '已开启' : '已关闭' }}</span>
+                <button
+                  @click="configData.extraSections.gallery.enabled = !configData.extraSections.gallery.enabled"
+                  :class="[
+                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2',
+                    configData?.extraSections?.gallery?.enabled ? 'bg-cyan-500' : 'bg-gray-200 dark:bg-gray-700'
+                  ]"
+                >
+                  <span
+                    :class="[
+                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                      configData?.extraSections?.gallery?.enabled ? 'translate-x-5' : 'translate-x-0'
+                    ]"
+                  ></span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resume 板块设置 -->
+          <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h4 class="font-general-semibold text-lg text-ternary-dark dark:text-ternary-light">Resume</h4>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">展示简历预览</p>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-gray-500 dark:text-gray-400">{{ configData?.extraSections?.resume?.enabled ? '已开启' : '已关闭' }}</span>
+                <button
+                  @click="configData.extraSections.resume.enabled = !configData.extraSections.resume.enabled"
+                  :class="[
+                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2',
+                    configData?.extraSections?.resume?.enabled ? 'bg-cyan-500' : 'bg-gray-200 dark:bg-gray-700'
+                  ]"
+                >
+                  <span
+                    :class="[
+                      'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                      configData?.extraSections?.resume?.enabled ? 'translate-x-5' : 'translate-x-0'
+                    ]"
+                  ></span>
+                </button>
+              </div>
+            </div>
+
+            <div v-if="configData?.extraSections?.resume?.enabled" class="mt-4">
+              <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                选择要展示的简历
+              </label>
+              <select
+                v-model="configData.extraSections.resume.selectedResumeId"
+                class="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-ternary-dark dark:text-ternary-light"
+              >
+                <option :value="null">请选择简历</option>
+                <option
+                  v-for="resume in resumeVersions"
+                  :key="resume.id"
+                  :value="resume.id"
+                >
+                  {{ resume.alias || resume.fileName }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <button
+            @click="saveConfig"
+            class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-general-semibold"
+          >
+            <i data-feather="save" class="w-4 h-4 inline mr-2"></i>
+            保存设置
+          </button>
         </div>
       </div>
     </div>
@@ -1592,6 +1851,120 @@ export default {
           </button>
           <button
             @click="saveAboutMe"
+            class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+          >
+            保存
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="isGalleryModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-secondary-light dark:bg-ternary-dark rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-gray-200 dark:border-secondary-dark">
+          <div class="flex justify-between items-center">
+            <h2 class="font-general-semibold text-2xl text-ternary-dark dark:text-ternary-light">
+              {{ editingGalleryImage.id ? '编辑图片' : '添加新图片' }}
+            </h2>
+            <button
+              @click="isGalleryModalOpen = false; editingGalleryImage = null"
+              class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <i data-feather="x" class="w-6 h-6"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="p-6 space-y-6">
+          <div>
+            <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+              图片
+            </label>
+            <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
+              <input
+                type="file"
+                accept="image/*"
+                @change="handleGalleryImageUpload"
+                class="hidden"
+                id="gallery-image-input"
+              />
+              <div class="text-center">
+                <label
+                  for="gallery-image-input"
+                  class="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 mb-2 cursor-pointer"
+                >
+                  选择或拖拽图片
+                </label>
+                <p class="text-sm text-gray-500 dark:text-gray-400">支持 JPG, PNG, GIF 等格式</p>
+              </div>
+              <div v-if="editingGalleryImage.url" class="mt-4">
+                <img :src="editingGalleryImage.url" class="max-h-64 mx-auto rounded" />
+                <input
+                  v-model="editingGalleryImage.url"
+                  type="text"
+                  placeholder="或输入图片URL"
+                  class="w-full mt-2 px-3 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                标题 (中文)
+              </label>
+              <input
+                v-model="editingGalleryImage.title.zh"
+                type="text"
+                class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+              />
+            </div>
+            <div>
+              <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                Title (English)
+              </label>
+              <input
+                v-model="editingGalleryImage.title.en"
+                type="text"
+                class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                描述 (中文)
+              </label>
+              <textarea
+                v-model="editingGalleryImage.description.zh"
+                rows="3"
+                class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+              ></textarea>
+            </div>
+            <div>
+              <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                Description (English)
+              </label>
+              <textarea
+                v-model="editingGalleryImage.description.en"
+                rows="3"
+                class="w-full px-4 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 border-t border-gray-200 dark:border-secondary-dark flex justify-end gap-3">
+          <button
+            @click="isGalleryModalOpen = false; editingGalleryImage = null"
+            class="px-6 py-2 border border-gray-300 dark:border-secondary-dark rounded-lg text-ternary-dark dark:text-ternary-light hover:bg-gray-100 dark:hover:bg-secondary-dark"
+          >
+            取消
+          </button>
+          <button
+            @click="saveGalleryImage"
             class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
           >
             保存

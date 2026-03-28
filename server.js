@@ -11,6 +11,8 @@ const PORT = 3002;
 
 const DATA_FILE = path.join(__dirname, 'public', 'data', 'projects.json');
 const ABOUT_FILE = path.join(__dirname, 'public', 'data', 'about.json');
+const CONFIG_FILE = path.join(__dirname, 'public', 'data', 'config.json');
+const GALLERY_FILE = path.join(__dirname, 'public', 'data', 'gallery.json');
 const CV_DIR = path.join(__dirname, 'public', 'files', 'cv');
 const CV_CONFIG_FILE = path.join(CV_DIR, 'config.json');
 const DATA_DIR = path.dirname(DATA_FILE);
@@ -257,6 +259,39 @@ function saveAbout(aboutData) {
   }
 }
 
+function loadConfig() {
+  if (fs.existsSync(CONFIG_FILE)) {
+    try {
+      const data = fs.readFileSync(CONFIG_FILE, 'utf8');
+      return JSON.parse(data);
+    } catch (error) {
+      console.error('Error loading config:', error);
+      return {
+        extraSections: {
+          gallery: { enabled: false },
+          resume: { enabled: false, selectedResumeId: null }
+        }
+      };
+    }
+  }
+  return {
+    extraSections: {
+      gallery: { enabled: false },
+      resume: { enabled: false, selectedResumeId: null }
+    }
+  };
+}
+
+function saveConfig(configData) {
+  try {
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(configData, null, 2));
+    return true;
+  } catch (error) {
+    console.error('Error saving config:', error);
+    return false;
+  }
+}
+
 function loadPassword() {
   if (fs.existsSync(PASSWORD_FILE)) {
     try {
@@ -277,6 +312,29 @@ function savePassword(password) {
     return true;
   } catch (error) {
     console.error('Error saving password:', error);
+    return false;
+  }
+}
+
+function loadGallery() {
+  if (fs.existsSync(GALLERY_FILE)) {
+    try {
+      const data = fs.readFileSync(GALLERY_FILE, 'utf8');
+      return JSON.parse(data);
+    } catch (error) {
+      console.error('Error loading gallery:', error);
+      return [];
+    }
+  }
+  return [];
+}
+
+function saveGallery(galleryData) {
+  try {
+    fs.writeFileSync(GALLERY_FILE, JSON.stringify(galleryData, null, 2));
+    return true;
+  } catch (error) {
+    console.error('Error saving gallery:', error);
     return false;
   }
 }
@@ -395,6 +453,27 @@ app.post('/api/about', (req, res) => {
     res.json(aboutData);
   } else {
     res.status(500).json({ error: 'Failed to save about data' });
+  }
+});
+
+app.get('/api/config', (req, res) => {
+  if (!API_ENABLED) {
+    return res.status(403).json({ error: 'API disabled' });
+  }
+  const config = loadConfig();
+  res.json(config);
+});
+
+app.post('/api/config', (req, res) => {
+  if (!API_ENABLED) {
+    return res.status(403).json({ error: 'API disabled' });
+  }
+  const config = req.body;
+  
+  if (saveConfig(config)) {
+    res.json(config);
+  } else {
+    res.status(500).json({ error: 'Failed to save config' });
   }
 });
 
@@ -740,6 +819,69 @@ app.delete('/api/resumes/:id', (req, res) => {
   
   saveCVConfig(config);
   res.json({ success: true });
+});
+
+app.get('/api/gallery', (req, res) => {
+  if (!API_ENABLED) {
+    return res.status(403).json({ error: 'API disabled' });
+  }
+  const gallery = loadGallery();
+  res.json(gallery);
+});
+
+app.post('/api/gallery', (req, res) => {
+  if (!API_ENABLED) {
+    return res.status(403).json({ error: 'API disabled' });
+  }
+  let image = req.body;
+  
+  if (image.id) {
+    const gallery = loadGallery();
+    const index = gallery.findIndex(img => img.id === image.id);
+    if (index !== -1) {
+      gallery[index] = image;
+    } else {
+      image.id = gallery.length ? Math.max(...gallery.map(img => img.id)) + 1 : 1;
+      gallery.push(image);
+    }
+    if (saveGallery(gallery)) {
+      res.json(image);
+    } else {
+      res.status(500).json({ error: 'Failed to save gallery' });
+    }
+  } else {
+    const gallery = loadGallery();
+    image.id = gallery.length ? Math.max(...gallery.map(img => img.id)) + 1 : 1;
+    gallery.push(image);
+    if (saveGallery(gallery)) {
+      res.json(image);
+    } else {
+      res.status(500).json({ error: 'Failed to save gallery' });
+    }
+  }
+});
+
+app.delete('/api/gallery/:id', (req, res) => {
+  if (!API_ENABLED) {
+    return res.status(403).json({ error: 'API disabled' });
+  }
+  const gallery = loadGallery();
+  const imageToDelete = gallery.find(img => img.id === parseInt(req.params.id));
+  
+  if (imageToDelete && imageToDelete.url && imageToDelete.url.startsWith('/uploads/')) {
+    const fileName = imageToDelete.url.replace('/uploads/', '');
+    const filePath = path.join(UPLOAD_DIR, fileName);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  }
+  
+  const filtered = gallery.filter(img => img.id !== parseInt(req.params.id));
+  if (saveGallery(filtered)) {
+    res.json({ success: true });
+  } else {
+    res.status(500).json({ error: 'Failed to delete gallery image' });
+  }
 });
 
 app.post('/api/change-password', (req, res) => {

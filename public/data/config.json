@@ -1,0 +1,11 @@
+{
+  "extraSections": {
+    "gallery": {
+      "enabled": true
+    },
+    "resume": {
+      "enabled": true,
+      "selectedResumeId": "1774687835160"
+    }
+  }
+}

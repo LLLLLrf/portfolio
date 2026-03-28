@@ -2,6 +2,7 @@ const API_BASE_URL = 'http://localhost:3002/api';
 const STORAGE_KEY_AUTH = 'portfolio_auth';
 const STORAGE_KEY_ABOUT_ME = 'portfolio_about_me';
 const STORAGE_KEY_RESUMES = 'portfolio_resumes';
+const STORAGE_KEY_CONFIG = 'portfolio_config';
 
 export const apiService = {
   async uploadImage(file) {
@@ -741,5 +742,155 @@ export const apiService = {
     } else {
       return { success: false, message: '旧密码错误' };
     }
+  },
+
+  async getConfig() {
+    const backendAvailable = await this.checkBackendAvailable();
+    if (backendAvailable) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/config`);
+        if (!response.ok) throw new Error('Failed to fetch');
+        return await response.json();
+      } catch (error) {
+        console.warn('Backend failed, falling back to static file');
+      }
+    }
+    return await this.getConfigLocal();
+  },
+
+  async getConfigLocal() {
+    try {
+      const timestamp = Date.now();
+      const response = await fetch(`/data/config.json?t=${timestamp}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Loaded config from static file');
+        return data;
+      }
+    } catch (error) {
+      console.error('Failed to load static config:', error);
+    }
+    
+    return {
+      extraSections: {
+        gallery: { enabled: false },
+        resume: { enabled: false, selectedResumeId: null }
+      }
+    };
+  },
+
+  async saveConfig(data) {
+    const backendAvailable = await this.checkBackendAvailable();
+    if (backendAvailable) {
+      try {
+        console.log('Saving config to backend');
+        const response = await fetch(`${API_BASE_URL}/config`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+        if (!response.ok) throw new Error('Failed to save');
+        const savedData = await response.json();
+        console.log('Config saved to backend');
+        return savedData;
+      } catch (error) {
+        console.warn('Backend failed, falling back to localStorage:', error);
+      }
+    }
+    console.log('Saving config to localStorage');
+    this.saveConfigLocal(data);
+  },
+
+  saveConfigLocal(data) {
+    localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(data));
+  },
+
+  async getGallery() {
+    const backendAvailable = await this.checkBackendAvailable();
+    if (backendAvailable) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/gallery`);
+        if (!response.ok) throw new Error('Failed to fetch');
+        return await response.json();
+      } catch (error) {
+        console.warn('Backend failed, falling back to local mode');
+      }
+    }
+    return await this.getGalleryLocal();
+  },
+
+  async getGalleryLocal() {
+    try {
+      const timestamp = Date.now();
+      const response = await fetch(`/data/gallery.json?t=${timestamp}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Loaded gallery from static file');
+        return data;
+      }
+    } catch (error) {
+      console.error('Failed to load static gallery data:', error);
+    }
+    return [];
+  },
+
+  async saveGalleryImage(image) {
+    const backendAvailable = await this.checkBackendAvailable();
+    if (backendAvailable) {
+      try {
+        console.log('Saving gallery image to backend:', image.id);
+        const response = await fetch(`${API_BASE_URL}/gallery`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(image),
+        });
+        if (!response.ok) throw new Error('Failed to save');
+        const savedImage = await response.json();
+        console.log('Gallery image saved to backend:', savedImage.id);
+        return savedImage;
+      } catch (error) {
+        console.warn('Backend failed, falling back to localStorage:', error);
+      }
+    }
+    console.log('Saving gallery image to localStorage:', image.id);
+    return this.saveGalleryImageLocal(image);
+  },
+
+  saveGalleryImageLocal(image) {
+    const gallery = this.getGalleryLocal();
+    const index = gallery.findIndex(img => img.id === image.id);
+    if (index !== -1) {
+      gallery[index] = image;
+    } else {
+      image.id = gallery.length ? Math.max(...gallery.map(img => img.id)) + 1 : 1;
+      gallery.push(image);
+    }
+    localStorage.setItem('portfolio_gallery', JSON.stringify(gallery));
+    return image;
+  },
+
+  async deleteGalleryImage(id) {
+    const backendAvailable = await this.checkBackendAvailable();
+    if (backendAvailable) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/gallery/${id}`, {
+          method: 'DELETE',
+        });
+        if (response.ok) return true;
+      } catch (error) {
+        console.warn('Backend failed, falling back to localStorage');
+      }
+    }
+    return this.deleteGalleryImageLocal(id);
+  },
+
+  deleteGalleryImageLocal(id) {
+    const gallery = this.getGalleryLocal().filter(img => img.id !== id);
+    localStorage.setItem('portfolio_gallery', JSON.stringify(gallery));
+    return true;
   }
 };

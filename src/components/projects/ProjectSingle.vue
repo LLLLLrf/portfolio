@@ -1,11 +1,21 @@
 <script>
 import { useLanguage } from '../../composables/useLanguage';
+import SkeletonLoader from '@/components/shared/SkeletonLoader.vue';
 
 export default {
+	components: { SkeletonLoader },
 	props: ['project'],
 	setup() {
 		const { t } = useLanguage();
 		return { t };
+	},
+	data() {
+		return {
+			isImageLoaded: false
+		};
+	},
+	mounted() {
+		this.checkImageLoaded();
 	},
 	methods: {
 		formatDate(dateString) {
@@ -15,6 +25,19 @@ export default {
 				year: 'numeric',
 				month: 'short'
 			});
+		},
+		checkImageLoaded() {
+			const img = new Image();
+			img.src = this.project.thumbnail;
+			if (img.complete) {
+				this.isImageLoaded = true;
+			}
+		},
+		onImageLoad() {
+			this.isImageLoaded = true;
+		},
+		onImageError() {
+			this.isImageLoaded = true;
 		}
 	}
 };
@@ -35,10 +58,22 @@ export default {
 		
 		<!-- Thumbnail overlay -->
 		<div class="relative overflow-hidden h-64">
+			<!-- Skeleton Loader -->
+			<SkeletonLoader 
+				v-if="!isImageLoaded" 
+				width="100%" 
+				height="100%" 
+				rounded="none"
+			/>
+			
+			<!-- Image -->
 			<img
+				v-show="isImageLoaded"
 				:src="project.thumbnail"
 				:alt="t(project.title)"
-				class="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 dark:group-hover:brightness-75"
+				@load="onImageLoad"
+				@error="onImageError"
+				class="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 dark:group-hover:brightness-75 fade-in"
 			/>
 			<div class="absolute inset-0 bg-black/40 opacity-0 dark:group-hover:opacity-100 transition-opacity duration-500"></div>
 		</div>
@@ -66,6 +101,19 @@ export default {
 </template>
 
 <style scoped>
+.fade-in {
+	animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
 .project-title-gradient {
 	display: inline-block;
 	transition: all 0.3s ease;

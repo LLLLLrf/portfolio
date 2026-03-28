@@ -1,24 +1,58 @@
 <script>
 import { apiService } from '@/services/apiService';
 import { useLanguage } from '@/composables/useLanguage';
+import SkeletonLoader from '@/components/shared/SkeletonLoader.vue';
 
 export default {
+	components: { SkeletonLoader },
 	setup() {
 		const { t } = useLanguage();
 		return { t };
 	},
 	data() {
 		return {
-			aboutMeData: null
+			aboutMeData: null,
+			isAvatarLoaded: false,
+			isDataLoaded: false
 		};
 	},
 	async mounted() {
 		this.aboutMeData = await apiService.getAboutMe();
+		this.isDataLoaded = true;
+		this.checkAvatarLoaded();
+		
+		// 超时保护，3秒后自动显示
+		setTimeout(() => {
+			if (!this.isAvatarLoaded) {
+				this.isAvatarLoaded = true;
+			}
+		}, 3000);
 	},
 	methods: {
+		checkAvatarLoaded() {
+			if (this.aboutMeData?.avatar) {
+				const img = new Image();
+				img.onload = () => {
+					this.isAvatarLoaded = true;
+				};
+				img.onerror = () => {
+					this.isAvatarLoaded = true;
+				};
+				img.src = this.aboutMeData.avatar;
+				if (img.complete) {
+					this.isAvatarLoaded = true;
+				}
+			} else {
+				// 如果没有头像，直接显示
+				this.isAvatarLoaded = true;
+			}
+		},
 		formatText(text) {
 			if (!text) return '';
 			return text.replace(/\*\*(.*?)\*\*/g, '<strong class="about-bold">$1</strong>');
+		},
+		onAvatarLoad() {
+			this.isAvatarLoaded = true;
 		}
 	}
 };
@@ -35,10 +69,15 @@ export default {
 					
 					<!-- 主照片 -->
 					<div class="photo-main">
+						<div v-if="!isAvatarLoaded" class="profile-photo-skeleton">
+							<SkeletonLoader width="320px" height="320px" rounded="lg" />
+						</div>
 						<img
 							:src="aboutMeData?.avatar || '@/assets/images/profile.jpg'"
-							class="profile-photo"
+							:class="['profile-photo', isAvatarLoaded ? 'photo-visible' : 'photo-hidden']"
 							alt="Profile image"
+							@load="onAvatarLoad"
+							@error="onAvatarLoad"
 						/>
 						
 						<!-- 个人信息 -->
@@ -78,7 +117,7 @@ export default {
 					
 					<!-- 简介内容 -->
 					<div class="bio-content">
-						<div v-if="aboutMeData" class="bio-texts">
+						<div v-if="isDataLoaded && aboutMeData" class="bio-texts">
 							<div
 								v-for="bio in aboutMeData.bios"
 								:key="bio.id"
@@ -89,12 +128,20 @@ export default {
 							<!-- 强制滚动条显示的占位元素 -->
 							<div class="scrollbar-spacer"></div>
 						</div>
-						<div v-else class="loading-text">
-							<span class="loading-dots">
-								<span></span>
-								<span></span>
-								<span></span>
-							</span>
+						<div v-else class="bio-skeleton">
+							<SkeletonLoader width="100%" height="20px" rounded="md" />
+							<div class="mt-4">
+								<SkeletonLoader width="90%" height="20px" rounded="md" />
+							</div>
+							<div class="mt-4">
+								<SkeletonLoader width="95%" height="20px" rounded="md" />
+							</div>
+							<div class="mt-4">
+								<SkeletonLoader width="85%" height="20px" rounded="md" />
+							</div>
+							<div class="mt-4">
+								<SkeletonLoader width="80%" height="20px" rounded="md" />
+							</div>
 						</div>
 					</div>
 					
@@ -160,6 +207,11 @@ export default {
 .photo-main {
 	position: relative;
 	z-index: 1;
+	min-height: 320px;
+}
+
+.profile-photo-skeleton {
+	max-width: 320px;
 }
 
 .profile-photo {
@@ -171,6 +223,29 @@ export default {
 		0 25px 50px -12px rgba(139, 92, 246, 0.1),
 		0 0 0 1px rgba(6, 182, 212, 0.1);
 	transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.photo-hidden {
+	opacity: 0;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.photo-visible {
+	opacity: 1;
+	animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
 }
 
 .profile-photo:hover {
