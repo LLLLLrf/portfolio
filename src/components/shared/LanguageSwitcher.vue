@@ -24,7 +24,7 @@ export default {
       title="切换语言"
     >
       <span class="font-general-medium text-ternary-dark dark:text-ternary-light">
-        {{ availableLanguages[currentLanguage].name }}
+        {{ availableLanguages[currentLanguage === 'zh' ? 'en' : 'zh'].name }}
       </span>
     </button>
   </div>

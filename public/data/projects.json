@@ -697,7 +697,7 @@
   {
     "id": 6,
     "title": {
-      "zh": "零代码个人作品集搭建平台",
+      "zh": "Leo's - 零代码作品集搭建平台",
       "en": "Zero-code personal portfolio building platform"
     },
     "category": {
@@ -715,16 +715,49 @@
       }
     ],
     "objective": {
-      "zh": "",
-      "en": ""
+      "zh": "本工作的目标是构建一个人人都能快速上手的个人网站搭建框架，通过前后端分离结构实现安全、快速、高效、零基础搭建个人网站。",
+      "en": "The goal of this work is to build a framework for setting up personal websites that everyone can quickly get started with. By adopting a front-end and back-end separation structure, it aims to achieve the secure, fast, efficient, and zero-threshold setup of personal websites."
     },
     "technologies": [],
     "challenge": {
       "zh": "",
       "en": ""
     },
-    "details": [],
-    "images": [],
+    "details": [
+      {
+        "id": 1774882967387,
+        "content": {
+          "zh": "求职过程中，我发现项目经历通过简历很难充分展示，遂开始搭建个人网站。发现当前所有的个人网站模板都需要代码基础，需要直接在代码上进行项目修改上传，**开发门槛高、编辑效率低**。因此我决定推翻旧有个人网站模板的推广方式，通过可视化交互界面直接编辑网页内容，快速上手。",
+          "en": "During the job hunting process, I realized that project experience could not be fully presented through a resume. So I started to build my own personal website. I found that all current personal website templates require a basic knowledge of coding and require direct modification and uploading of projects on the code. **The development threshold is high and the editing efficiency is low**. Therefore, I decided to abandon the traditional promotion method of the old personal website templates and directly edit the web content through a visual interactive interface, so as to quickly get started."
+        }
+      }
+    ],
+    "images": [
+      {
+        "id": 1774883468710,
+        "url": "/uploads/1774883497787-825007439.png",
+        "title": {
+          "zh": "个人网站Logo设计",
+          "en": "Personal website logo design"
+        },
+        "description": {
+          "zh": "Logo灵感来自制作本网站时的工作环境，通过Nano Banana调整并最终实现此效果，并支持深浅双色",
+          "en": "The logo was inspired by the working environment during the creation of this website. It was adjusted and finalized using Nano Banana, and supports both light and dark colors."
+        }
+      },
+      {
+        "id": 1774883650144,
+        "url": "/uploads/1774883677932-455786844.png",
+        "title": {
+          "zh": "管理员端 - 项目管理页面",
+          "en": "Administrator end - Project Management Page"
+        },
+        "description": {
+          "zh": "本项目提供完整的自定义编辑界面，可通过拖动点击实现网页编辑",
+          "en": "This project offers a complete customizable editing interface, allowing for web page editing through dragging and clicking."
+        }
+      }
+    ],
     "relatedProjects": []
   }
 ]

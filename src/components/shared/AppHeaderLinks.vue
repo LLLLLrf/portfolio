@@ -3,12 +3,18 @@ import { useConfig } from '@/composables/useConfig';
 
 export default {
 	props: ['showModal', 'isOpen'],
+	emits: ['closeMenu'],
 	setup() {
 		const { config, loadConfig } = useConfig();
 		return { config, loadConfig };
 	},
 	async mounted() {
 		await this.loadConfig();
+	},
+	methods: {
+		closeMenuOnClick() {
+			this.$emit('closeMenu');
+		}
 	}
 };
 </script>
@@ -23,12 +29,14 @@ export default {
 			to="/projects"
 			class="font-general-medium block text-left text-lg font-medium text-primary-dark dark:text-ternary-light hover:text-indigo-600 dark:hover:text-indigo-300  sm:mx-4 mb-2 sm:py-2 "
 			aria-label="Projects"
+			@click="closeMenuOnClick"
 			>Projects</router-link
 		>
 		<router-link
 			to="/about"
 			class="font-general-medium block text-left text-lg font-medium text-primary-dark dark:text-ternary-light hover:text-indigo-600 dark:hover:text-indigo-300  sm:mx-4 mb-2 sm:py-2 border-t-2 pt-3 sm:pt-2 sm:border-t-0 border-primary-light dark:border-secondary-dark"
 			aria-label="About Me"
+			@click="closeMenuOnClick"
 			>About Me</router-link
 		>
 		<router-link
@@ -36,6 +44,7 @@ export default {
 			to="/resume"
 			class="font-general-medium block text-left text-lg font-medium text-primary-dark dark:text-ternary-light hover:text-indigo-600 dark:hover:text-indigo-300  sm:mx-4 mb-2 sm:py-2 border-t-2 pt-3 sm:pt-2 sm:border-t-0 border-primary-light dark:border-secondary-dark"
 			aria-label="Resume"
+			@click="closeMenuOnClick"
 			>Resume</router-link
 		>
 		<router-link
@@ -43,6 +52,7 @@ export default {
 			to="/gallery"
 			class="font-general-medium block text-left text-lg font-medium text-primary-dark dark:text-ternary-light hover:text-indigo-600 dark:hover:text-indigo-300  sm:mx-4 mb-2 sm:py-2 border-t-2 pt-3 sm:pt-2 sm:border-t-0 border-primary-light dark:border-secondary-dark"
 			aria-label="Gallery"
+			@click="closeMenuOnClick"
 			>Gallery</router-link
 		>
 		<div
@@ -50,7 +60,7 @@ export default {
 		>
 			<button
 				class="font-general-medium sm:hidden block text-left text-md font-medium bg-indigo-500 hover:bg-indigo-600 text-white shadow-sm rounded-sm px-4 py-2 mt-2 duration-500"
-				@click="showModal()"
+				@click="showModal(); closeMenuOnClick()"
 				aria-label="Hire Me Button"
 			>
 				Hire Me

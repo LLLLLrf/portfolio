@@ -22,55 +22,59 @@ export default {
 			loadedImages: new Set()
 		};
 	},
-	computed: {
-		allImages() {
-			const images = [];
-			
-			// 添加单独上传的 Gallery 图片
-			this.galleryImages.forEach(img => {
-				images.push({
-					...img,
-					isGalleryOnly: true
-				});
-			});
-			
-			// 添加项目图片
-			this.projects.forEach(project => {
-				if (project.images) {
-					project.images.forEach(img => {
-						images.push({
-							...img,
-							projectTitle: project.title,
-							isGalleryOnly: false
-						});
-					});
-				}
-			});
-			
-			return images;
+	mounted() {
+		// 尝试从sessionStorage加载图片加载状态
+		const cachedImages = sessionStorage.getItem('gallery_loaded_images');
+		if (cachedImages) {
+			const imageIds = JSON.parse(cachedImages);
+			imageIds.forEach(id => this.loadedImages.add(id));
+			console.log('Loaded gallery image states from sessionStorage');
 		}
+		
+		this.loadData();
+		document.addEventListener('keydown', this.escapeKeyHandler);
+		
+		this.$nextTick(() => {
+			this.scrollContainer = this.$refs.scrollContainer;
+			if (this.scrollContainer) {
+				this.scrollContainer.addEventListener('scroll', this.updateArrows);
+				this.updateArrows();
+			}
+		});
 	},
 	methods: {
+		async loadData() {
+			this.projects = await apiService.getProjects();
+			this.galleryImages = await apiService.getGallery();
+			this.checkAllImagesLoaded();
+		},
 		checkAllImagesLoaded() {
 			this.allImages.forEach(img => {
 				const image = new Image();
 				image.onload = () => {
 					this.loadedImages.add(img.id);
+					this.saveLoadedImages();
 				};
 				image.onerror = () => {
 					this.loadedImages.add(img.id);
+					this.saveLoadedImages();
 				};
 				image.src = img.url || img.img;
 				if (image.complete) {
 					this.loadedImages.add(img.id);
+					this.saveLoadedImages();
 				}
 			});
+		},
+		saveLoadedImages() {
+			sessionStorage.setItem('gallery_loaded_images', JSON.stringify(Array.from(this.loadedImages)));
 		},
 		isImageLoaded(imageId) {
 			return this.loadedImages.has(imageId);
 		},
 		onImageLoad(imageId) {
 			this.loadedImages.add(imageId);
+			this.saveLoadedImages();
 		},
 		openImageModal(image) {
 			this.selectedImage = image;
@@ -107,19 +111,33 @@ export default {
 			this.showRightArrow = scrollLeft < (scrollWidth - clientWidth);
 		}
 	},
-	async mounted() {
-		this.projects = await apiService.getProjects();
-		this.galleryImages = await apiService.getGallery();
-		document.addEventListener('keydown', this.escapeKeyHandler);
-		this.checkAllImagesLoaded();
-		
-		this.$nextTick(() => {
-			this.scrollContainer = this.$refs.scrollContainer;
-			if (this.scrollContainer) {
-				this.scrollContainer.addEventListener('scroll', this.updateArrows);
-				this.updateArrows();
-			}
-		});
+	computed: {
+		allImages() {
+			const images = [];
+			
+			// 添加单独上传的 Gallery 图片
+			this.galleryImages.forEach(img => {
+				images.push({
+					...img,
+					isGalleryOnly: true
+				});
+			});
+			
+			// 添加项目图片
+			this.projects.forEach(project => {
+				if (project.images) {
+					project.images.forEach(img => {
+						images.push({
+							...img,
+							projectTitle: project.title,
+							isGalleryOnly: false
+						});
+					});
+				}
+			});
+			
+			return images;
+		}
 	},
 	unmounted() {
 		document.removeEventListener('keydown', this.escapeKeyHandler);

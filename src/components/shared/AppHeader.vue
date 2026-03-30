@@ -50,6 +50,11 @@ export default {
 	mounted() {
 		feather.replace();
 		this.theme = localStorage.getItem('theme') || 'dark';
+		// 添加点击外部关闭菜单的功能
+		document.addEventListener('click', this.handleClickOutside);
+	},
+	beforeUnmount() {
+		document.removeEventListener('click', this.handleClickOutside);
 	},
 	methods: {
 		updateTheme(theme) {
@@ -69,6 +74,12 @@ export default {
 				this.modal = true;
 			}
 		},
+		handleClickOutside(event) {
+			const navElement = document.getElementById('nav');
+			if (this.isOpen && navElement && !navElement.contains(event.target)) {
+				this.isOpen = false;
+			}
+		},
 	},
 	updated() {
 		feather.replace();
@@ -80,7 +91,7 @@ export default {
 	<nav id="nav" class="fixed top-0 left-0 right-0 bg-white dark:bg-gray-900 shadow-md z-50">
 		<!-- Header start -->
 		<div
-			class="sm:container sm:mx-auto max-w-screen-lg xl:max-w-screen-xl block sm:flex sm:justify-between sm:items-center py-4 px-4 sm:px-0"
+			class="sm:container sm:mx-auto max-w-screen-lg xl:max-w-screen-xl block sm:flex sm:justify-between sm:items-center py-3 px-4 sm:px-0"
 		>
 			<!-- Header menu links and small screen hamburger menu -->
 			<div class="flex justify-between items-center px-4 sm:px-0">
@@ -102,12 +113,18 @@ export default {
 					</router-link>
 				</div>
 
+				<!-- Mobile controls container -->
+			<div class="flex items-center gap-2 sm:hidden">
+				<!-- Language switcher small screen -->
+				<language-switcher class="bg-ternary-light dark:bg-ternary-dark hover:bg-hover-light dark:hover:bg-hover-dark hover:shadow-sm px-2.5 py-2 rounded-lg" />
+				
 				<!-- Theme switcher small screen -->
 				<theme-switcher
 					:theme="theme"
 					@themeChanged="updateTheme"
-					class="block sm:hidden bg-ternary-light dark:bg-ternary-dark hover:bg-hover-light dark:hover:bg-hover-dark hover:shadow-sm px-2.5 py-2 rounded-lg"
+					class="bg-ternary-light dark:bg-ternary-dark hover:bg-hover-light dark:hover:bg-hover-dark hover:shadow-sm px-2.5 py-2 rounded-lg"
 				/>
+			</div>
 
 				<!-- Small screen hamburger menu -->
 				<div class="sm:hidden">
@@ -139,7 +156,11 @@ export default {
 			</div>
 
 			<!-- Header links -->
-			<AppHeaderLinks :showModal="showModal" :isOpen="isOpen" />
+		<AppHeaderLinks 
+			:showModal="showModal" 
+			:isOpen="isOpen" 
+			@closeMenu="isOpen = false"
+		/>
 
 			<!-- Header right section buttons -->
 			<div

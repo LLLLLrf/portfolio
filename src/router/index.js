@@ -7,7 +7,7 @@ const routes = [
 		name: 'Home',
 		component: Home,
 		meta: {
-			title: 'Stoman - Home',
+			title: 'Leo\'s Projects - Home',
 		},
 	},
 	{
@@ -16,7 +16,7 @@ const routes = [
 		component: () =>
 			import(/* webpackChunkName: "about" */ '../views/About.vue'),
 		meta: {
-			title: 'Stoman - About',
+			title: 'Leo\'s Projects - About',
 		},
 	},
 	{
@@ -25,7 +25,7 @@ const routes = [
 		component: () =>
 			import(/* webpackChunkName: "projects" */ '../views/Projects.vue'),
 		meta: {
-			title: 'Stoman - Projects',
+			title: 'Leo\'s Projects - Projects',
 		},
 	},
 	{
@@ -36,7 +36,7 @@ const routes = [
 				/* webpackChunkName: "projects" */ '../views/SingleProject.vue'
 			),
 		meta: {
-			title: 'Stoman - Single Project',
+			title: 'Leo\'s Projects - Single Project',
 		},
 	},
 	{
@@ -45,7 +45,7 @@ const routes = [
 		component: () =>
 			import(/* webpackChunkName: "gallery" */ '../views/Gallery.vue'),
 		meta: {
-			title: 'Stoman - Gallery',
+			title: 'Leo\'s Projects - Gallery',
 		},
 	},
 	{
@@ -54,7 +54,7 @@ const routes = [
 		component: () =>
 			import(/* webpackChunkName: "resume" */ '../views/Resume.vue'),
 		meta: {
-			title: 'Stoman - Resume',
+			title: 'Leo\'s Projects - Resume',
 		},
 	},
 	{

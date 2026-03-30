@@ -15,7 +15,13 @@ export default {
 		};
 	},
 	mounted() {
-		this.checkImageLoaded();
+		// 尝试从sessionStorage加载图片加载状态
+		const cachedState = sessionStorage.getItem(`project_image_${this.project.id}`);
+		if (cachedState) {
+			this.isImageLoaded = JSON.parse(cachedState);
+		} else {
+			this.checkImageLoaded();
+		}
 	},
 	methods: {
 		formatDate(dateString) {
@@ -31,13 +37,16 @@ export default {
 			img.src = this.project.thumbnail;
 			if (img.complete) {
 				this.isImageLoaded = true;
+				sessionStorage.setItem(`project_image_${this.project.id}`, 'true');
 			}
 		},
 		onImageLoad() {
 			this.isImageLoaded = true;
+			sessionStorage.setItem(`project_image_${this.project.id}`, 'true');
 		},
 		onImageError() {
 			this.isImageLoaded = true;
+			sessionStorage.setItem(`project_image_${this.project.id}`, 'true');
 		}
 	}
 };

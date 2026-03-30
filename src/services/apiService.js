@@ -3,6 +3,9 @@ const STORAGE_KEY_AUTH = 'portfolio_auth';
 const STORAGE_KEY_ABOUT_ME = 'portfolio_about_me';
 const STORAGE_KEY_RESUMES = 'portfolio_resumes';
 const STORAGE_KEY_CONFIG = 'portfolio_config';
+const STORAGE_KEY_PROJECTS = 'portfolio_projects_cache';
+const STORAGE_KEY_GALLERY = 'portfolio_gallery_cache';
+const CACHE_DURATION = 3600000; // 1 hour in milliseconds
 
 export const apiService = {
   async uploadImage(file) {
@@ -44,17 +47,38 @@ export const apiService = {
   },
 
   async getProjects() {
+    // 检查缓存
+    const cachedData = localStorage.getItem(STORAGE_KEY_PROJECTS);
+    if (cachedData) {
+      const { data, timestamp } = JSON.parse(cachedData);
+      if (Date.now() - timestamp < CACHE_DURATION) {
+        console.log('Loaded projects from cache');
+        return data;
+      }
+    }
+
     const backendAvailable = await this.checkBackendAvailable();
+    let projects;
     if (backendAvailable) {
       try {
         const response = await fetch(`${API_BASE_URL}/projects`);
         if (!response.ok) throw new Error('Failed to fetch');
-        return await response.json();
+        projects = await response.json();
       } catch (error) {
         console.warn('Backend failed, falling back to localStorage');
+        projects = await this.getProjectsLocal();
       }
+    } else {
+      projects = await this.getProjectsLocal();
     }
-    return await this.getProjectsLocal();
+
+    // 更新缓存
+    localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify({
+      data: projects,
+      timestamp: Date.now()
+    }));
+
+    return projects;
   },
 
   formatText(text) {
@@ -808,17 +832,38 @@ export const apiService = {
   },
 
   async getGallery() {
+    // 检查缓存
+    const cachedData = localStorage.getItem(STORAGE_KEY_GALLERY);
+    if (cachedData) {
+      const { data, timestamp } = JSON.parse(cachedData);
+      if (Date.now() - timestamp < CACHE_DURATION) {
+        console.log('Loaded gallery from cache');
+        return data;
+      }
+    }
+
     const backendAvailable = await this.checkBackendAvailable();
+    let gallery;
     if (backendAvailable) {
       try {
         const response = await fetch(`${API_BASE_URL}/gallery`);
         if (!response.ok) throw new Error('Failed to fetch');
-        return await response.json();
+        gallery = await response.json();
       } catch (error) {
         console.warn('Backend failed, falling back to local mode');
+        gallery = await this.getGalleryLocal();
       }
+    } else {
+      gallery = await this.getGalleryLocal();
     }
-    return await this.getGalleryLocal();
+
+    // 更新缓存
+    localStorage.setItem(STORAGE_KEY_GALLERY, JSON.stringify({
+      data: gallery,
+      timestamp: Date.now()
+    }));
+
+    return gallery;
   },
 
   async getGalleryLocal() {

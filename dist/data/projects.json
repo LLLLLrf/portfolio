@@ -163,8 +163,8 @@
       }
     ],
     "objective": {
-      "zh": "本项目希望通过融合AI技术、电商社区，打造一款电子衣橱，支持试穿、AI一键扫描导入并分类、支持从商城购买直接导入。既提升了用户体验又实现了较好的商业化方案。",
-      "en": "This project aims to integrate AI technology and e-commerce communities to create an electronic wardrobe. It supports try-on, one-click AI scanning for import and classification, and enables direct import from online stores. This not only enhances the user experience but also achieves a good commercialization plan."
+      "zh": "本项目希望通过融合AI技术、电商社区，打造一款基于电子衣橱功能的购物软件，支持试穿、AI一键扫描导入并分类、支持从商城购买直接导入。既提升了用户体验又实现了较好的商业化，实现了“购物-衣橱整理-穿搭推荐”的链路闭环。",
+      "en": "This project aims to integrate AI technology and e-commerce communities to create a shopping software with the function of an electronic wardrobe. It supports try-on, one-click AI scanning for import and classification, and enables direct import from the mall. This not only enhances the user experience but also achieves good commercialization, realizing a closed-loop of the chain of shopping - wardrobe organization - outfit recommendation."
     },
     "technologies": [
       "Flutter",
@@ -174,7 +174,29 @@
       "zh": "",
       "en": ""
     },
-    "details": [],
+    "details": [
+      {
+        "id": 1774695556392,
+        "content": {
+          "zh": "本项目想法始于2023年初，从实际痛点与商业化前景出发，我设计了这款软件。软件自带的扫描工具可以自动扫描出衣物轮廓并通过AI平整化，**自动分类衣物类型、颜色、适合的季节和场合等**。首页会根据用户喜好、当日天气推送穿搭，并**附身到身材与用户相仿的AI模特身上供参考**，用户也可以选择**今日出行场合来调整推荐**。商业化方面，我设计了服装商城与穿搭广场两个功能。",
+          "en": "The idea for this project originated in early 2023. Based on practical problems and commercial prospects, I designed this software. The software comes with a scanning tool that can automatically scan the contours of clothes and smooth them through AI technology. It can also **automatically classify the types, colors, suitable seasons and occasions of the clothes**. The homepage will **recommend outfits based on the user's preferences and the current weather, and will be \"attached\" to an AI model with a similar body shape for reference**. Users can also choose **\"the current travel occasion\"** to adjust the recommendations. In terms of commercialization, I have designed two functions: a clothing mall and a dressing square."
+        }
+      },
+      {
+        "id": 1774696034246,
+        "content": {
+          "zh": "设计这两个商业化功能的时候，我面临团队成员提出的两个问题：\n**1. 凭什么认为用户有动力扫描衣柜里的所有衣物？**\n**2. 用户凭什么使用这样一个新软件购买衣服？**",
+          "en": "When designing these two commercial functions, I encountered two questions raised by my team members:\n**1. Why do you think users will be motivated to scan all the clothes in their wardrobes? **\n**2. How can users use this new software to purchase clothes? **"
+        }
+      },
+      {
+        "id": 1774696511377,
+        "content": {
+          "zh": "这两个问题指向本产品的重要特性：**高用户粘性，但也高上手门槛。**因此我需要一个用户愿意上手的理由，并尽可能降低使用门槛。\n面对此优化目标，我的设计是：\n\n1. 进入产品时仅需填写一次身形信息，在本平台购物会**提供身材相仿的AI模特试衣并自动推荐尺码。**\n2. 根据退货反馈不断**迭代优化推荐算法**，保证算法精准\n3. 在本平台购入的衣服不需要到手后再扫描，而是**从商品图中直接提取，自动归档到衣柜并颁发购买认证的精美数字卡片**\n\n这样一来，产品就从单纯的电子衣橱产品变成了一款“足够好用”的衣橱购物软件，只是我们依旧把衣橱和AI穿搭推荐放在首页，依旧保证软件的功能性实用性优先。",
+          "en": "These two issues point to the key features of this product: **high user stickiness, but also high learning barriers.** Therefore, I need a reason for users to be willing to get started, and I need to minimize the usage barriers as much as possible.\nFacing this optimization goal, my design is:\n\n**1. When entering the product, only the body information needs to be filled in once. When shopping on this platform, AI models with similar body shapes will be provided for try-on and size recommendations will be automatically offered.**\n**2. Continuously iterate and optimize the recommendation algorithm based on return feedback to ensure its accuracy.**\n**3. Clothes purchased on this platform do not need to be scanned after delivery; instead, they can be directly extracted from the product images, automatically archived to the wardrobe, and awarded a beautiful digital card for purchase certification.**\n\nIn this way, the product has transformed from a simple electronic wardrobe product into a \"sufficiently functional\" wardrobe shopping software. However, we still place the wardrobe and AI outfit recommendations on the homepage, and still prioritize the functionality and practicality of the software."
+        }
+      }
+    ],
     "images": [
       {
         "id": 1773823520590,
@@ -216,11 +238,11 @@
         "id": 1773823664347,
         "url": "/uploads/1773823677687-487341227.png",
         "title": {
-          "zh": "当前产品痛点与不足",
+          "zh": "现有产品的痛点与不足",
           "en": "Current product pain points and shortcomings"
         },
         "description": {
-          "zh": "当前产品主要聚焦在购物和社媒，没有关注个人衣橱、AI试衣、每日穿搭推荐等功能",
+          "zh": "当前产品主要聚焦在购物和社媒，没有关注个人衣橱、AI试衣、每日穿搭推荐等工具属性功能，并不“智能”、“好用”。",
           "en": "The current product mainly focuses on shopping and social media, without paying attention to functions such as personal wardrobe management, AI fitting, and daily outfit recommendations."
         }
       },
@@ -228,8 +250,8 @@
         "id": 1773824458631,
         "url": "/uploads/1773824484122-561234569.png",
         "title": {
-          "zh": "",
-          "en": ""
+          "zh": "产品技术架构实现",
+          "en": "Product technical architecture implementation"
         },
         "description": {
           "zh": "",
@@ -403,7 +425,10 @@
         }
       }
     ],
-    "relatedProjects": []
+    "relatedProjects": [
+      4,
+      5
+    ]
   },
   {
     "id": 4,
@@ -412,8 +437,8 @@
       "en": "PaperPuppy - Your loyal research partner!"
     },
     "category": {
-      "zh": "AI Agent，网站开发，PC客户端开发",
-      "en": "AI Agent，Web Development，PC Client Development"
+      "zh": "AI Agent，网站开发，PC客户端",
+      "en": "AI Agent，Web Development，PC Client"
     },
     "thumbnail": "/uploads/1774254417876-834748301.png",
     "date": "2025-12-30",
@@ -568,5 +593,138 @@
       1,
       2
     ]
+  },
+  {
+    "id": 5,
+    "title": {
+      "zh": "DreamTalk - 与梦对话机",
+      "en": "DreamTalk"
+    },
+    "category": {
+      "zh": "AI 硬件, AI Agent, 微信小程序",
+      "en": "AI Hardware, AI Agent, Wechat Miniprogram"
+    },
+    "thumbnail": "/uploads/1774682707396-489000408.jpg",
+    "date": "2025-07-01",
+    "tags": [
+      "AI Hardware",
+      "AI Agent",
+      "Wechat Miniprogram"
+    ],
+    "codeRepos": [],
+    "objective": {
+      "zh": "本产品目标是顺应AI Agent浪潮，切入细分市场售卖AI+硬件，小规模做一次创业尝试。",
+      "en": "The aim of this product is to ride the wave of AI Agents and enter the niche market to sell AI combined with hardware. It intends to make a small-scale entrepreneurial attempt."
+    },
+    "technologies": [],
+    "challenge": {
+      "zh": "",
+      "en": ""
+    },
+    "details": [
+      {
+        "id": 1774699734859,
+        "content": {
+          "zh": "这是本人的第二个创业项目，团队成员均来自清华和北大。初期通过小红书等社交媒体验证市场，同步研发软硬件。在积累了一定客户规模后，开始打板生产并请了专门的运营客服成员完善售后流程。本产品最终实现连续数月营业额在10w+。",
+          "en": "This is my second entrepreneurial project. The team members are all from Tsinghua University and Peking University. Initially, we verified the market through social media platforms like Xiaohongshu and simultaneously developed both software and hardware. After accumulating a certain customer base, we started to produce in batches and hired dedicated operation and customer service staff to improve the after-sales process. Eventually, the product achieved a monthly revenue of over 100,000 yuan for several consecutive months."
+        }
+      }
+    ],
+    "images": [
+      {
+        "id": 1774698858398,
+        "url": "/uploads/1774698870447-502510518.jpg",
+        "title": {
+          "zh": "促销海报",
+          "en": "Promotional poster"
+        },
+        "description": {
+          "zh": "双十一期间我们发布的促销活动海报",
+          "en": "The promotional activity posters we released during the Double Eleven (11.11) period"
+        }
+      },
+      {
+        "id": 1774698669200,
+        "url": "/uploads/1774698691499-173412011.png",
+        "title": {
+          "zh": "商业报告",
+          "en": "Business Report"
+        },
+        "description": {
+          "zh": "作为一个全新的AI创业产品，我们取得了较好的销售额",
+          "en": "As a new AI-based entrepreneurial product, we have achieved good sales results."
+        }
+      },
+      {
+        "id": 1774698955772,
+        "url": "/uploads/1774698970684-631475723.jpg",
+        "title": {
+          "zh": "小红书平台引流",
+          "en": "Attracting customers on RedNote platform"
+        },
+        "description": {
+          "zh": "我们铺设矩阵账号，积累了第一批众筹+内测用户，构建私域生态，同时完成市场验证",
+          "en": "We established matrix accounts, accumulated the first batch of crowdfunding and internal testing users, built a private ecosystem, and simultaneously completed market validation."
+        }
+      },
+      {
+        "id": 1774699113372,
+        "url": "/uploads/1774699123170-7539407.jpg",
+        "title": {
+          "zh": "矩阵账号运营",
+          "en": "Matrix accounts management"
+        },
+        "description": {
+          "zh": "每个账号都获得了较好的浏览数据",
+          "en": "Each account has achieved good browsing data."
+        }
+      },
+      {
+        "id": 1774698773848,
+        "url": "/uploads/1774698788736-422371579.jpg",
+        "title": {
+          "zh": "微信小程序",
+          "en": "Wechat MiniProgram"
+        },
+        "description": {
+          "zh": "可以在小程序端完成设备配对、选择人物形象、保存聊天记录和记忆等",
+          "en": "You can complete device pairing, select character images, save chat records and memories, etc. on the mini-program side."
+        }
+      }
+    ],
+    "relatedProjects": []
+  },
+  {
+    "id": 6,
+    "title": {
+      "zh": "零代码个人作品集搭建平台",
+      "en": "Zero-code personal portfolio building platform"
+    },
+    "category": {
+      "zh": "开源项目，网站开发",
+      "en": "Open source projects, website development"
+    },
+    "thumbnail": "/uploads/1774699898508-727800620.png",
+    "date": "2026-03-01",
+    "tags": [],
+    "codeRepos": [
+      {
+        "id": 1774700025232,
+        "name": "Portfolio",
+        "url": "https://github.com/LLLLLrf/portfolio"
+      }
+    ],
+    "objective": {
+      "zh": "",
+      "en": ""
+    },
+    "technologies": [],
+    "challenge": {
+      "zh": "",
+      "en": ""
+    },
+    "details": [],
+    "images": [],
+    "relatedProjects": []
   }
 ]
