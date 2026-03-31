@@ -46,14 +46,16 @@ export const apiService = {
     }
   },
 
-  async getProjects() {
+  async getProjects(skipCache = false) {
     // 检查缓存
-    const cachedData = localStorage.getItem(STORAGE_KEY_PROJECTS);
-    if (cachedData) {
-      const { data, timestamp } = JSON.parse(cachedData);
-      if (Date.now() - timestamp < CACHE_DURATION) {
-        console.log('Loaded projects from cache');
-        return data;
+    if (!skipCache) {
+      const cachedData = localStorage.getItem(STORAGE_KEY_PROJECTS);
+      if (cachedData) {
+        const { data, timestamp } = JSON.parse(cachedData);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+          console.log('Loaded projects from cache');
+          return data;
+        }
       }
     }
 
@@ -72,11 +74,13 @@ export const apiService = {
       projects = await this.getProjectsLocal();
     }
 
-    // 更新缓存
-    localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify({
-      data: projects,
-      timestamp: Date.now()
-    }));
+    // 更新缓存（除非跳过缓存）
+    if (!skipCache) {
+      localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify({
+        data: projects,
+        timestamp: Date.now()
+      }));
+    }
 
     return projects;
   },
@@ -155,13 +159,18 @@ export const apiService = {
         if (!response.ok) throw new Error('Failed to save');
         const savedProject = await response.json();
         console.log('Project saved to backend:', savedProject.id);
+        // 清除缓存，确保下次加载最新数据
+        localStorage.removeItem(STORAGE_KEY_PROJECTS);
         return savedProject;
       } catch (error) {
         console.warn('Backend failed, falling back to localStorage:', error);
       }
     }
     console.log('Saving project to localStorage:', project.id);
-    return this.saveProjectLocal(project);
+    const savedProject = this.saveProjectLocal(project);
+    // 清除缓存，确保下次加载最新数据
+    localStorage.removeItem(STORAGE_KEY_PROJECTS);
+    return savedProject;
   },
 
   async saveAllProjects(projects) {
@@ -179,13 +188,18 @@ export const apiService = {
         if (!response.ok) throw new Error('Failed to save');
         const result = await response.json();
         console.log('All projects saved to backend');
+        // 清除缓存，确保下次加载最新数据
+        localStorage.removeItem(STORAGE_KEY_PROJECTS);
         return result;
       } catch (error) {
         console.warn('Backend failed, falling back to localStorage:', error);
       }
     }
     console.log('Saving all projects to localStorage');
-    return this.saveAllProjectsLocal(projects);
+    const result = this.saveAllProjectsLocal(projects);
+    // 清除缓存，确保下次加载最新数据
+    localStorage.removeItem(STORAGE_KEY_PROJECTS);
+    return result;
   },
 
   async deleteProject(id) {
@@ -195,12 +209,19 @@ export const apiService = {
         const response = await fetch(`${API_BASE_URL}/projects/${id}`, {
           method: 'DELETE',
         });
-        if (response.ok) return true;
+        if (response.ok) {
+          // 清除缓存，确保下次加载最新数据
+          localStorage.removeItem(STORAGE_KEY_PROJECTS);
+          return true;
+        }
       } catch (error) {
         console.warn('Backend failed, falling back to localStorage');
       }
     }
-    return this.deleteProjectLocal(id);
+    const result = this.deleteProjectLocal(id);
+    // 清除缓存，确保下次加载最新数据
+    localStorage.removeItem(STORAGE_KEY_PROJECTS);
+    return result;
   },
 
   async resetData() {
@@ -210,12 +231,19 @@ export const apiService = {
         const response = await fetch(`${API_BASE_URL}/reset`, {
           method: 'POST',
         });
-        if (response.ok) return true;
+        if (response.ok) {
+          // 清除缓存，确保下次加载最新数据
+          localStorage.removeItem(STORAGE_KEY_PROJECTS);
+          return true;
+        }
       } catch (error) {
         console.warn('Backend failed, falling back to localStorage');
       }
     }
-    return this.resetDataLocal();
+    const result = this.resetDataLocal();
+    // 清除缓存，确保下次加载最新数据
+    localStorage.removeItem(STORAGE_KEY_PROJECTS);
+    return result;
   },
 
   async getProjectsLocal() {
@@ -831,14 +859,16 @@ export const apiService = {
     localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(data));
   },
 
-  async getGallery() {
+  async getGallery(skipCache = false) {
     // 检查缓存
-    const cachedData = localStorage.getItem(STORAGE_KEY_GALLERY);
-    if (cachedData) {
-      const { data, timestamp } = JSON.parse(cachedData);
-      if (Date.now() - timestamp < CACHE_DURATION) {
-        console.log('Loaded gallery from cache');
-        return data;
+    if (!skipCache) {
+      const cachedData = localStorage.getItem(STORAGE_KEY_GALLERY);
+      if (cachedData) {
+        const { data, timestamp } = JSON.parse(cachedData);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+          console.log('Loaded gallery from cache');
+          return data;
+        }
       }
     }
 
@@ -857,11 +887,13 @@ export const apiService = {
       gallery = await this.getGalleryLocal();
     }
 
-    // 更新缓存
-    localStorage.setItem(STORAGE_KEY_GALLERY, JSON.stringify({
-      data: gallery,
-      timestamp: Date.now()
-    }));
+    // 更新缓存（除非跳过缓存）
+    if (!skipCache) {
+      localStorage.setItem(STORAGE_KEY_GALLERY, JSON.stringify({
+        data: gallery,
+        timestamp: Date.now()
+      }));
+    }
 
     return gallery;
   },
@@ -896,13 +928,18 @@ export const apiService = {
         if (!response.ok) throw new Error('Failed to save');
         const savedImage = await response.json();
         console.log('Gallery image saved to backend:', savedImage.id);
+        // 清除缓存，确保下次加载最新数据
+        localStorage.removeItem(STORAGE_KEY_GALLERY);
         return savedImage;
       } catch (error) {
         console.warn('Backend failed, falling back to localStorage:', error);
       }
     }
     console.log('Saving gallery image to localStorage:', image.id);
-    return this.saveGalleryImageLocal(image);
+    const savedImage = this.saveGalleryImageLocal(image);
+    // 清除缓存，确保下次加载最新数据
+    localStorage.removeItem(STORAGE_KEY_GALLERY);
+    return savedImage;
   },
 
   saveGalleryImageLocal(image) {
@@ -925,12 +962,19 @@ export const apiService = {
         const response = await fetch(`${API_BASE_URL}/gallery/${id}`, {
           method: 'DELETE',
         });
-        if (response.ok) return true;
+        if (response.ok) {
+          // 清除缓存，确保下次加载最新数据
+          localStorage.removeItem(STORAGE_KEY_GALLERY);
+          return true;
+        }
       } catch (error) {
         console.warn('Backend failed, falling back to localStorage');
       }
     }
-    return this.deleteGalleryImageLocal(id);
+    const result = this.deleteGalleryImageLocal(id);
+    // 清除缓存，确保下次加载最新数据
+    localStorage.removeItem(STORAGE_KEY_GALLERY);
+    return result;
   },
 
   deleteGalleryImageLocal(id) {

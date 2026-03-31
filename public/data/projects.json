@@ -24,8 +24,8 @@
       }
     ],
     "objective": {
-      "zh": "本项目灵感来源于2021年疫情期间带火的居家健身浪潮。在实际体验了健身软件keep、网络直播跟练、线上健身私教课等模式后，我意识到，居家健身对于普通人仍有较高的上手门槛。问题包括：用户线上跟练无法获得动作指导和及时反馈，无法确认自身的跟练效果，从而可能对健身成效产生焦虑情绪，甚至可能因动作不规范受伤。而一对一的私教课收费高昂，上课时心理压力较大，不满足许多人居家时想随时轻松运动的需求。因此，我们基于AI技术，实现了用手机前置摄像头对用户动作的精准建模，并与教练的动作做相似度评估，将动作准确度实时展示在屏幕上。",
-      "en": "The inspiration for this project comes from the home fitness trend that gained popularity during the pandemic. After experiencing various home fitness models such as the fitness app Keep, online live-streaming workouts, and online private fitness classes, I realized that there are still high entry barriers for ordinary people to engage in home fitness. The problems include: users cannot receive movement guidance and timely feedback when following online classes, and they cannot confirm their exercise effect, which may cause anxiety about the fitness results and even lead to injuries due to incorrect movements. Moreover, one-on-one private classes are expensive and cause psychological pressure during the class, which does not meet the needs of many people who want to exercise casually at home. Therefore, based on AI technology, we have achieved precise modeling of users' movements using the front camera of their mobile phones and evaluated the similarity with the coach's movements, displaying the accuracy of the movements in real time on the screen."
+      "zh": "本项目旨在降低居家健身的使用门槛，提升用户的运动体验与训练效果，通过更好的功能设计帮助用户自律坚持、安全健康地锻炼身体。通过引入基于AI的动作识别与评估技术，利用手机前置摄像头对用户运动过程进行实时建模，并与标准教练动作进行对比分析，系统能够即时反馈动作准确度与规范性。项目希望在无需高昂私教成本的前提下，为用户提供专业、直观且低压力的健身指导，从而帮助其科学训练、减少运动损伤风险，并持续提升居家健身的参与感与成效。",
+      "en": "This project aims to lower the threshold for home fitness, enhance users' exercise experience and training effectiveness, and help users exercise self-discipline, safety and health through better functional design. By introducing AI-based motion recognition and assessment technology, the system can use the front camera of the mobile phone to model the user's exercise process in real time and compare it with the standard coach's movements for analysis. The system can immediately provide feedback on the accuracy and standardization of the movements. The project hopes to provide users with professional, intuitive and low-pressure fitness guidance without the need for high-cost personal trainers, thereby helping them train scientifically, reduce the risk of sports injuries, and continuously improve the sense of participation and effectiveness of home fitness."
     },
     "technologies": [
       "OpenPose",
@@ -42,6 +42,13 @@
         "content": {
           "zh": "作为一个2021年立项的创新创业项目，本人负责了整个产品的构建、技术选型、前后端开发，攻克了AI识别的难点，实现了极早的AI+传统软件布局。也因此项目，受到腾讯、华为等公司内部成员关注，希望能将此产品思路带入各公司后期的项目中。在腾讯开始做相关业务后，我也因此加入实习，专注打磨ieg部门的图像算法和相关产品",
           "en": "As a project initiated in 2021, I was responsible for the entire product's construction, technical selection, front-end and back-end development, and overcame the difficulties in AI recognition, achieving an early integration of AI and traditional software. As a result, this project attracted the attention of internal members of companies such as Tencent and Huawei, who hoped to incorporate this product concept into their subsequent projects. After Tencent began to engage in related business, I also joined as an intern, focusing on polishing the image algorithms and related products of the ieg department."
+        }
+      },
+      {
+        "id": 1774950225352,
+        "content": {
+          "zh": "本项目灵感来源于疫情期间带火的居家健身浪潮。在实际体验了健身软件keep、网络直播跟练、线上健身私教课等模式后，我意识到，居家健身对于普通人仍有较高的上手门槛。\n\n问题包括：用户线上跟练无法获得动作指导和及时反馈，无法确认自身的跟练效果，从而可能对健身成效产生焦虑情绪，甚至可能因动作不规范受伤。而一对一的私教课收费高昂，上课时心理压力较大，不满足许多人居家时想随时轻松运动的需求。因此，我们基于AI技术，实现了用手机前置摄像头对用户动作的精准建模，并与教练的动作做相似度评估，将动作准确度实时展示在屏幕上。",
+          "en": "The inspiration for this project comes from the home fitness trend that gained popularity during the pandemic. After experiencing various home fitness models such as the fitness app Keep, online live-streaming workouts, and online private fitness classes, I realized that there are still high entry barriers for ordinary people to engage in home fitness.\n\nThe problems include: users cannot receive movement guidance and timely feedback when following online classes, and they cannot confirm their exercise effect, which may cause anxiety about the fitness results and even lead to injuries due to incorrect movements. Moreover, one-on-one private classes are expensive and cause psychological pressure during the class, which does not meet the needs of many people who want to exercise casually at home. Therefore, based on AI technology, we have achieved precise modeling of users' movements using the front camera of their mobile phones and evaluated the similarity with the coach's movements, displaying the accuracy of the movements in real time on the screen."
         }
       }
     ],
@@ -625,8 +632,8 @@
       {
         "id": 1774699734859,
         "content": {
-          "zh": "这是本人的第二个创业项目，团队成员均来自清华和北大。初期通过小红书等社交媒体验证市场，同步研发软硬件。在积累了一定客户规模后，开始打板生产并请了专门的运营客服成员完善售后流程。本产品最终实现连续数月营业额在10w+。",
-          "en": "This is my second entrepreneurial project. The team members are all from Tsinghua University and Peking University. Initially, we verified the market through social media platforms like Xiaohongshu and simultaneously developed both software and hardware. After accumulating a certain customer base, we started to produce in batches and hired dedicated operation and customer service staff to improve the after-sales process. Eventually, the product achieved a monthly revenue of over 100,000 yuan for several consecutive months."
+          "zh": "这是本人的第二个创业项目，团队成员均来自清华和北大。初期通过小红书等社交媒体验证市场，同步研发软硬件。在积累了一定客户规模后，开始打板生产并请了专门的运营客服成员完善售后流程。本产品最终实现连续数**月营业额在10w+**。",
+          "en": "This is my second entrepreneurial project. The team members are all from Tsinghua University and Peking University. Initially, we verified the market through social media platforms like Xiaohongshu and simultaneously developed both software and hardware. After accumulating a certain customer base, we started to produce in batches and hired dedicated operation and customer service staff to improve the after-sales process. Eventually, the product achieved a **monthly revenue of over 100,000 yuan for several consecutive months**."
         }
       }
     ],
@@ -756,8 +763,22 @@
           "zh": "本项目提供完整的自定义编辑界面，可通过拖动点击实现网页编辑",
           "en": "This project offers a complete customizable editing interface, allowing for web page editing through dragging and clicking."
         }
+      },
+      {
+        "id": 1774955688425,
+        "url": "/uploads/1774955698905-988655466.jpg",
+        "title": {
+          "zh": "后台简历管理系统",
+          "en": "Back-end Resume Management System"
+        },
+        "description": {
+          "zh": "实现简历上传、重命名、版本管理、根据求职需求选择展示的简历",
+          "en": "Enable resume upload, renaming, version management, and selection of resume display based on job application requirements."
+        }
       }
     ],
-    "relatedProjects": []
+    "relatedProjects": [
+      5
+    ]
   }
 ]

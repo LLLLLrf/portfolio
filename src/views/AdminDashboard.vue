@@ -96,7 +96,7 @@ export default {
       this.backendAvailable = await apiService.checkBackendAvailable();
     },
     async loadProjects() {
-      this.projects = await apiService.getProjects();
+      this.projects = await apiService.getProjects(true); // 传递skipCache=true，确保admin端总是加载最新数据
     },
     async loadAboutMe() {
       this.aboutMeData = await apiService.getAboutMe();
@@ -644,7 +644,7 @@ export default {
     },
 
     async loadGallery() {
-      this.galleryImages = await apiService.getGallery();
+      this.galleryImages = await apiService.getGallery(true); // 传递skipCache=true，确保admin端总是加载最新数据
       this.$nextTick(() => {
         feather.replace();
       });
