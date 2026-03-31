@@ -473,6 +473,10 @@ export default {
           resume: { enabled: false, selectedResumeId: null }
         };
       }
+      // 确保contactEmail字段存在
+      if (!this.configData.contactEmail) {
+        this.configData.contactEmail = '';
+      }
     },
 
     saveConfig() {
@@ -1217,6 +1221,25 @@ export default {
                   {{ resume.alias || resume.fileName }}
                 </option>
               </select>
+            </div>
+          </div>
+
+          <!-- Contact Email 设置 -->
+          <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <div class="mb-4">
+              <h4 class="font-general-semibold text-lg text-ternary-dark dark:text-ternary-light">联系邮箱</h4>
+              <p class="text-gray-500 dark:text-gray-400 text-sm">用于 Hire Me 按钮展示的邮箱地址</p>
+            </div>
+            <div class="mt-4">
+              <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
+                邮箱地址
+              </label>
+              <input
+                v-model="configData.contactEmail"
+                type="email"
+                class="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-ternary-dark dark:text-ternary-light"
+                placeholder="请输入您的邮箱地址"
+              />
             </div>
           </div>
         </div>

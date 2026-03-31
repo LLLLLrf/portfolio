@@ -192,7 +192,6 @@ export default {
 		<HireMeModal
 			:showModal="showModal"
 			:modal="modal"
-			:categories="categories"
 			aria-modal="Hire Me Modal"
 		/>
 	</nav>
