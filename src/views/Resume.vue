@@ -19,10 +19,16 @@ export default {
 		const resumeData = await apiService.getResumes();
 		this.resumes = resumeData.configs || [];
 		
+		console.log('Resume.vue - Config:', this.config);
+		console.log('Resume.vue - Resumes:', this.resumes);
+		console.log('Resume.vue - Selected resume id from config:', this.config?.extraSections?.resume?.selectedResumeId);
+		
 		if (this.config?.extraSections?.resume?.selectedResumeId) {
 			this.selectedResume = this.resumes.find(r => r.id === this.config.extraSections.resume.selectedResumeId);
+			console.log('Resume.vue - Found selected resume by id:', this.selectedResume);
 		} else {
 			this.selectedResume = this.resumes.find(r => r.isCurrent) || this.resumes[0];
+			console.log('Resume.vue - Found selected resume by isCurrent or first:', this.selectedResume);
 		}
 		this.isLoading = false;
 		

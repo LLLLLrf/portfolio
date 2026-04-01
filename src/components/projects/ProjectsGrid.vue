@@ -44,19 +44,11 @@ export default {
 	methods: {
 		async loadProjects() {
 			this.projects = await apiService.getProjects();
-			// 存储到localStorage，确保页面切换时数据不丢失
-			localStorage.setItem('portfolio_projects_data', JSON.stringify(this.projects));
 		},
 	},
 	mounted() {
-		// 尝试从localStorage加载数据
-		const storedProjects = localStorage.getItem('portfolio_projects_data');
-		if (storedProjects) {
-			this.projects = JSON.parse(storedProjects);
-			console.log('Loaded projects from localStorage');
-		} else {
-			this.loadProjects();
-		}
+		// 直接从apiService加载数据，不从localStorage读取
+		this.loadProjects();
 		feather.replace();
 	},
 };

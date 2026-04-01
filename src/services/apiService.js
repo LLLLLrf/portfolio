@@ -31,7 +31,7 @@ export const apiService = {
     try {
       const response = await fetch(`${API_BASE_URL}/health`, {
         method: 'GET',
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(2000) // 缩短超时时间，提高响应速度
       });
       if (response.ok) {
         const data = await response.json();
@@ -41,24 +41,13 @@ export const apiService = {
       console.log('Backend response not ok');
       return false;
     } catch (error) {
-      console.warn('Backend not available, falling back to local mode:', error);
+      console.warn('Backend not available, falling back to static files');
       return false;
     }
   },
 
   async getProjects(skipCache = false) {
-    // 检查缓存（仅在后端可用时使用缓存，确保数据一致性）
     const backendAvailable = await this.checkBackendAvailable();
-    if (backendAvailable && !skipCache) {
-      const cachedData = localStorage.getItem(STORAGE_KEY_PROJECTS);
-      if (cachedData) {
-        const { data, timestamp } = JSON.parse(cachedData);
-        if (Date.now() - timestamp < CACHE_DURATION) {
-          console.log('Loaded projects from cache');
-          return data;
-        }
-      }
-    }
 
     let projects;
     if (backendAvailable) {
@@ -72,15 +61,8 @@ export const apiService = {
       }
     } else {
       // 后端断开时，从静态文件读取数据，确保在任何设备上都能获取到最新数据
+      console.log('Backend not available, loading projects from static file');
       projects = await this.getProjectsLocal();
-    }
-
-    // 更新缓存（仅在后端可用时更新，确保数据一致性）
-    if (backendAvailable && !skipCache) {
-      localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify({
-        data: projects,
-        timestamp: Date.now()
-      }));
     }
 
     return projects;
@@ -493,6 +475,7 @@ export const apiService = {
         console.warn('Backend failed, falling back to static file');
       }
     }
+    console.log('Backend not available, loading about me from static file');
     return await this.getAboutMeLocal();
   },
 
@@ -562,36 +545,39 @@ export const apiService = {
         const response = await fetch(`${API_BASE_URL}/resumes`);
         if (!response.ok) throw new Error('Failed to fetch');
         const resumes = await response.json();
-        // 保存简历配置到localStorage，在同一设备上提供更好的用户体验
-        if (resumes.configs) {
-          localStorage.setItem(STORAGE_KEY_RESUMES, JSON.stringify(resumes.configs));
-        }
         return resumes;
       } catch (error) {
-        console.warn('Backend failed, falling back to local mode');
+        console.warn('Backend failed, falling back to static file');
       }
     }
     
     // 从静态文件读取简历数据，确保在任何设备上都能获取到最新数据
+    console.log('Backend not available, loading resumes from static file');
     return this.getResumesLocal();
   },
 
   async getResumesLocal() {
     try {
+      // 尝试从静态文件读取配置
       const response = await fetch('/files/cv/config.json');
       if (response.ok) {
         const config = await response.json();
-        const savedConfigs = this.getResumeConfigsLocal();
+        console.log('Raw static config:', config);
         
-        const configs = (config.files || []).map(fileName => {
-          const existing = savedConfigs.find(c => c.fileName === fileName);
-          return {
-            id: existing?.id || fileName.replace(/\.[^/.]+$/, ''),
-            fileName: fileName,
-            alias: existing?.alias || fileName.replace(/\.[^/.]+$/, ''),
-            isCurrent: existing?.isCurrent || false,
-            createdAt: existing?.createdAt || Date.now()
-          };
+        // 直接使用配置文件中的configs数据
+        let configs = config.configs || [];
+        
+        // 确保每个简历都有fileName，并且指向实际存在的文件
+        configs = configs.map(resume => {
+          // 如果没有originalName，用fileName
+          if (!resume.originalName) {
+            resume.originalName = resume.fileName;
+          }
+          // 如果没有alias，用originalName
+          if (!resume.alias) {
+            resume.alias = resume.originalName.replace(/\.[^/.]+$/, '');
+          }
+          return resume;
         });
         
         configs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -600,12 +586,29 @@ export const apiService = {
           configs[0].isCurrent = true;
         }
         
-        return { files: config.files || [], configs };
+        console.log('Loaded resumes from static config file:', configs);
+        return { 
+          files: config.files || configs.map(c => c.fileName), 
+          configs 
+        };
+      } else {
+        console.warn('Config file not found, trying to load from local storage as fallback');
+        const savedConfigs = this.getResumeConfigsLocal();
+        if (savedConfigs.length > 0) {
+          console.log('Loaded resumes from localStorage fallback');
+          return { files: savedConfigs.map(c => c.fileName), configs: savedConfigs };
+        }
       }
     } catch (e) {
-      console.error('Failed to load config.json:', e);
+      console.error('Failed to load resumes:', e);
+      const savedConfigs = this.getResumeConfigsLocal();
+      if (savedConfigs.length > 0) {
+        console.log('Loaded resumes from localStorage fallback');
+        return { files: savedConfigs.map(c => c.fileName), configs: savedConfigs };
+      }
     }
     
+    console.log('No resumes found, returning empty array');
     return { files: [], configs: [] };
   },
 
@@ -718,16 +721,8 @@ export const apiService = {
   },
 
   async getResumeConfigs() {
-    const backendAvailable = await this.checkBackendAvailable();
-    if (backendAvailable) {
-      try {
-        const config = await this.getResumes();
-        return config.configs;
-      } catch (error) {
-        console.warn('Backend failed, falling back to local mode');
-      }
-    }
-    return this.getResumeConfigsLocal();
+    const config = await this.getResumes();
+    return config.configs;
   },
 
   async saveResumeConfigs(configs) {
@@ -810,8 +805,6 @@ export const apiService = {
         const response = await fetch(`${API_BASE_URL}/config`);
         if (!response.ok) throw new Error('Failed to fetch');
         const config = await response.json();
-        // 同时保存到localStorage，在同一设备上提供更好的用户体验
-        this.saveConfigLocal(config);
         return config;
       } catch (error) {
         console.warn('Backend failed, falling back to static file');
@@ -819,6 +812,7 @@ export const apiService = {
     }
     
     // 从静态文件读取配置，确保在任何设备上都能获取到最新数据
+    console.log('Backend not available, loading config from static file');
     return await this.getConfigLocal();
   },
 
@@ -858,7 +852,7 @@ export const apiService = {
         if (!response.ok) throw new Error('Failed to save');
         const savedData = await response.json();
         console.log('Config saved to backend');
-        // 同时保存到localStorage，确保在后端断开时也能使用
+        // 同时保存到localStorage，在同一设备上提供更好的用户体验
         this.saveConfigLocal(data);
         return savedData;
       } catch (error) {
@@ -874,18 +868,7 @@ export const apiService = {
   },
 
   async getGallery(skipCache = false) {
-    // 检查缓存（仅在后端可用时使用缓存，确保数据一致性）
     const backendAvailable = await this.checkBackendAvailable();
-    if (backendAvailable && !skipCache) {
-      const cachedData = localStorage.getItem(STORAGE_KEY_GALLERY);
-      if (cachedData) {
-        const { data, timestamp } = JSON.parse(cachedData);
-        if (Date.now() - timestamp < CACHE_DURATION) {
-          console.log('Loaded gallery from cache');
-          return data;
-        }
-      }
-    }
 
     let gallery;
     if (backendAvailable) {
@@ -899,15 +882,8 @@ export const apiService = {
       }
     } else {
       // 后端断开时，从静态文件读取数据，确保在任何设备上都能获取到最新数据
+      console.log('Backend not available, loading gallery from static file');
       gallery = await this.getGalleryLocal();
-    }
-
-    // 更新缓存（仅在后端可用时更新，确保数据一致性）
-    if (backendAvailable && !skipCache) {
-      localStorage.setItem(STORAGE_KEY_GALLERY, JSON.stringify({
-        data: gallery,
-        timestamp: Date.now()
-      }));
     }
 
     return gallery;

@@ -5,7 +5,8 @@
     "廖若凡工作简历.pdf",
     "廖若凡简历.pdf",
     "英文简历.pdf",
-    "廖若凡产品简历.pdf"
+    "廖若凡产品简历.pdf",
+    "北京大学计算机-廖若凡-立即到岗.pdf"
   ],
   "configs": [
     {
@@ -48,8 +49,16 @@
       "fileName": "1774687835156-270731936.pdf",
       "originalName": "廖若凡产品简历.pdf",
       "alias": "廖若凡产品简历",
-      "isCurrent": true,
+      "isCurrent": false,
       "createdAt": 1774687835160
+    },
+    {
+      "id": "1775032287783",
+      "fileName": "1775032287778-400735746.pdf",
+      "originalName": "北京大学计算机-廖若凡-立即到岗.pdf",
+      "alias": "北京大学计算机-廖若凡-立即到岗",
+      "isCurrent": true,
+      "createdAt": 1775032287783
     }
   ]
 }
