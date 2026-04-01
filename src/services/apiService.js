@@ -47,8 +47,9 @@ export const apiService = {
   },
 
   async getProjects(skipCache = false) {
-    // 检查缓存
-    if (!skipCache) {
+    // 检查缓存（仅在后端可用时使用缓存，确保数据一致性）
+    const backendAvailable = await this.checkBackendAvailable();
+    if (backendAvailable && !skipCache) {
       const cachedData = localStorage.getItem(STORAGE_KEY_PROJECTS);
       if (cachedData) {
         const { data, timestamp } = JSON.parse(cachedData);
@@ -59,7 +60,6 @@ export const apiService = {
       }
     }
 
-    const backendAvailable = await this.checkBackendAvailable();
     let projects;
     if (backendAvailable) {
       try {
@@ -67,15 +67,16 @@ export const apiService = {
         if (!response.ok) throw new Error('Failed to fetch');
         projects = await response.json();
       } catch (error) {
-        console.warn('Backend failed, falling back to localStorage');
+        console.warn('Backend failed, falling back to static file');
         projects = await this.getProjectsLocal();
       }
     } else {
+      // 后端断开时，从静态文件读取数据，确保在任何设备上都能获取到最新数据
       projects = await this.getProjectsLocal();
     }
 
-    // 更新缓存（除非跳过缓存）
-    if (!skipCache) {
+    // 更新缓存（仅在后端可用时更新，确保数据一致性）
+    if (backendAvailable && !skipCache) {
       localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify({
         data: projects,
         timestamp: Date.now()
@@ -560,12 +561,18 @@ export const apiService = {
       try {
         const response = await fetch(`${API_BASE_URL}/resumes`);
         if (!response.ok) throw new Error('Failed to fetch');
-        return await response.json();
+        const resumes = await response.json();
+        // 保存简历配置到localStorage，在同一设备上提供更好的用户体验
+        if (resumes.configs) {
+          localStorage.setItem(STORAGE_KEY_RESUMES, JSON.stringify(resumes.configs));
+        }
+        return resumes;
       } catch (error) {
         console.warn('Backend failed, falling back to local mode');
       }
     }
     
+    // 从静态文件读取简历数据，确保在任何设备上都能获取到最新数据
     return this.getResumesLocal();
   },
 
@@ -802,11 +809,16 @@ export const apiService = {
       try {
         const response = await fetch(`${API_BASE_URL}/config`);
         if (!response.ok) throw new Error('Failed to fetch');
-        return await response.json();
+        const config = await response.json();
+        // 同时保存到localStorage，在同一设备上提供更好的用户体验
+        this.saveConfigLocal(config);
+        return config;
       } catch (error) {
         console.warn('Backend failed, falling back to static file');
       }
     }
+    
+    // 从静态文件读取配置，确保在任何设备上都能获取到最新数据
     return await this.getConfigLocal();
   },
 
@@ -846,6 +858,8 @@ export const apiService = {
         if (!response.ok) throw new Error('Failed to save');
         const savedData = await response.json();
         console.log('Config saved to backend');
+        // 同时保存到localStorage，确保在后端断开时也能使用
+        this.saveConfigLocal(data);
         return savedData;
       } catch (error) {
         console.warn('Backend failed, falling back to localStorage:', error);
@@ -860,8 +874,9 @@ export const apiService = {
   },
 
   async getGallery(skipCache = false) {
-    // 检查缓存
-    if (!skipCache) {
+    // 检查缓存（仅在后端可用时使用缓存，确保数据一致性）
+    const backendAvailable = await this.checkBackendAvailable();
+    if (backendAvailable && !skipCache) {
       const cachedData = localStorage.getItem(STORAGE_KEY_GALLERY);
       if (cachedData) {
         const { data, timestamp } = JSON.parse(cachedData);
@@ -872,7 +887,6 @@ export const apiService = {
       }
     }
 
-    const backendAvailable = await this.checkBackendAvailable();
     let gallery;
     if (backendAvailable) {
       try {
@@ -880,15 +894,16 @@ export const apiService = {
         if (!response.ok) throw new Error('Failed to fetch');
         gallery = await response.json();
       } catch (error) {
-        console.warn('Backend failed, falling back to local mode');
+        console.warn('Backend failed, falling back to static file');
         gallery = await this.getGalleryLocal();
       }
     } else {
+      // 后端断开时，从静态文件读取数据，确保在任何设备上都能获取到最新数据
       gallery = await this.getGalleryLocal();
     }
 
-    // 更新缓存（除非跳过缓存）
-    if (!skipCache) {
+    // 更新缓存（仅在后端可用时更新，确保数据一致性）
+    if (backendAvailable && !skipCache) {
       localStorage.setItem(STORAGE_KEY_GALLERY, JSON.stringify({
         data: gallery,
         timestamp: Date.now()
