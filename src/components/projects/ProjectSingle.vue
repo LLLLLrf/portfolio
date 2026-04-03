@@ -15,12 +15,22 @@ export default {
 		};
 	},
 	mounted() {
-		// 尝试从sessionStorage加载图片加载状态
-		const cachedState = sessionStorage.getItem(`project_image_${this.project.id}`);
-		if (cachedState) {
-			this.isImageLoaded = JSON.parse(cachedState);
-		} else {
-			this.checkImageLoaded();
+		// 先尝试检查图片是否已经在缓存中
+		this.checkImageLoaded();
+		
+		// 设置超时保护，最多等待5秒
+		this.loadTimeout = setTimeout(() => {
+			if (!this.isImageLoaded) {
+				console.warn('Image load timeout, showing image anyway:', this.project.thumbnail);
+				this.isImageLoaded = true;
+				sessionStorage.setItem(`project_image_${this.project.id}`, 'true');
+			}
+		}, 5000);
+	},
+	beforeUnmount() {
+		// 组件卸载时清除定时器
+		if (this.loadTimeout) {
+			clearTimeout(this.loadTimeout);
 		}
 	},
 	methods: {
@@ -34,7 +44,23 @@ export default {
 		},
 		checkImageLoaded() {
 			const img = new Image();
+			
+			// 设置加载成功和失败的回调
+			img.onload = () => {
+				this.isImageLoaded = true;
+				sessionStorage.setItem(`project_image_${this.project.id}`, 'true');
+			};
+			
+			img.onerror = () => {
+				console.warn('Failed to load image:', this.project.thumbnail);
+				this.isImageLoaded = true;
+				sessionStorage.setItem(`project_image_${this.project.id}`, 'true');
+			};
+			
+			// 开始加载图片
 			img.src = this.project.thumbnail;
+			
+			// 如果图片已经在缓存中，直接设置为已加载
 			if (img.complete) {
 				this.isImageLoaded = true;
 				sessionStorage.setItem(`project_image_${this.project.id}`, 'true');

@@ -23,14 +23,7 @@ export default {
 		};
 	},
 	mounted() {
-		// 尝试从sessionStorage加载图片加载状态
-		const cachedImages = sessionStorage.getItem('gallery_loaded_images');
-		if (cachedImages) {
-			const imageIds = JSON.parse(cachedImages);
-			imageIds.forEach(id => this.loadedImages.add(id));
-			console.log('Loaded gallery image states from sessionStorage');
-		}
-		
+		// 直接加载数据，不从sessionStorage读取
 		this.loadData();
 		document.addEventListener('keydown', this.escapeKeyHandler);
 		
@@ -41,6 +34,12 @@ export default {
 				this.updateArrows();
 			}
 		});
+	},
+	beforeUnmount() {
+		// 组件卸载时清除定时器
+		if (this.loadTimeout) {
+			clearTimeout(this.loadTimeout);
+		}
 	},
 	methods: {
 		async loadData() {
@@ -53,18 +52,26 @@ export default {
 				const image = new Image();
 				image.onload = () => {
 					this.loadedImages.add(img.id);
-					this.saveLoadedImages();
 				};
 				image.onerror = () => {
+					console.warn('Failed to load gallery image:', img.url || img.img);
 					this.loadedImages.add(img.id);
-					this.saveLoadedImages();
 				};
 				image.src = img.url || img.img;
 				if (image.complete) {
 					this.loadedImages.add(img.id);
-					this.saveLoadedImages();
 				}
 			});
+			
+			// 设置超时保护，最多等待5秒
+			this.loadTimeout = setTimeout(() => {
+				this.allImages.forEach(img => {
+					if (!this.loadedImages.has(img.id)) {
+						console.warn('Gallery image load timeout, showing anyway:', img.url || img.img);
+						this.loadedImages.add(img.id);
+					}
+				});
+			}, 5000);
 		},
 		saveLoadedImages() {
 			sessionStorage.setItem('gallery_loaded_images', JSON.stringify(Array.from(this.loadedImages)));

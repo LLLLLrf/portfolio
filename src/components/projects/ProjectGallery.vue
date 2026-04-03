@@ -18,11 +18,35 @@ export default {
 		checkAllImagesLoaded() {
 			this.projectImages.forEach(img => {
 				const image = new Image();
+				
+				// 设置加载成功和失败的回调
+				image.onload = () => {
+					this.loadedImages.add(img.id);
+				};
+				
+				image.onerror = () => {
+					console.warn('Failed to load gallery image:', img.img);
+					this.loadedImages.add(img.id);
+				};
+				
+				// 开始加载图片
 				image.src = img.img;
+				
+				// 如果图片已经在缓存中，直接设置为已加载
 				if (image.complete) {
 					this.loadedImages.add(img.id);
 				}
 			});
+			
+			// 设置超时保护，最多等待5秒
+			this.loadTimeout = setTimeout(() => {
+				this.projectImages.forEach(img => {
+					if (!this.loadedImages.has(img.id)) {
+						console.warn('Gallery image load timeout, showing anyway:', img.img);
+						this.loadedImages.add(img.id);
+					}
+				});
+			}, 5000);
 		},
 		onImageLoad(imageId) {
 			this.loadedImages.add(imageId);
@@ -101,6 +125,12 @@ export default {
 				this.updateArrows();
 			}
 		});
+	},
+	beforeUnmount() {
+		// 组件卸载时清除定时器
+		if (this.loadTimeout) {
+			clearTimeout(this.loadTimeout);
+		}
 	},
 	unmounted() {
 		document.removeEventListener('keydown', this.escapeKeyHandler);
