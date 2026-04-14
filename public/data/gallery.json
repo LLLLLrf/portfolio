@@ -1,1 +1,155 @@
-[]
+[
+  {
+    "id": 1,
+    "url": "/uploads/1776066449803-463840560.jpg",
+    "images": [
+      "/uploads/1776066449803-463840560.jpg",
+      "/uploads/1776065898412-633894898.jpg",
+      "/uploads/1776065902985-544505862.jpg",
+      "/uploads/1776065890119-70373851.jpg",
+      "/uploads/1776066444236-363977725.jpg"
+    ],
+    "title": {
+      "zh": "抖音AI创变者大赛",
+      "en": "Douyin AI Innovation Challenge"
+    },
+    "description": {
+      "zh": "进入决赛 全国前二十",
+      "en": "Enter the finals, top 20 in the country"
+    }
+  },
+  {
+    "id": 2,
+    "url": "/uploads/1776144984203-980782609.jpg",
+    "images": [
+      "/uploads/1776144984203-980782609.jpg",
+      "/uploads/1776145017093-80563535.png",
+      "/uploads/1776145000173-214772298.png",
+      "/uploads/1776145003066-782467487.png",
+      "/uploads/1776145030144-301391193.png",
+      "/uploads/1776145066203-273915425.jpg"
+    ],
+    "title": {
+      "zh": "国家奖学金及其它部分奖状/证明",
+      "en": "National Scholarship and Some Other Awards and Certificates"
+    },
+    "description": {
+      "zh": "在读期间部分获奖情况",
+      "en": "Awards received during the study period"
+    }
+  },
+  {
+    "id": 3,
+    "url": "/uploads/1776067929036-729719804.jpg",
+    "images": [
+      "/uploads/1776067929036-729719804.jpg",
+      "/uploads/1776067939114-85635166.jpg",
+      "/uploads/1776067910223-519897843.jpg",
+      "/uploads/1776067934531-479590090.jpg"
+    ],
+    "title": {
+      "zh": "校级/院级毕业典礼 中英双语 学生代表发言",
+      "en": "School/College Graduation Ceremony (Bilingual Version) - Speech by Student Representative"
+    },
+    "description": {
+      "zh": "作为校级与院级学生代表在各级毕业典礼上做总结发言，其中一场中文一场英文",
+      "en": "As student representatives at the school and college levels, they delivered closing speeches at various graduation ceremonies, one in Chinese and one in English."
+    }
+  },
+  {
+    "id": 4,
+    "url": "/uploads/1776004033294-700132955.jpg",
+    "title": {
+      "zh": "学习经验分享会",
+      "en": "Learning Experience Sharing Session"
+    },
+    "description": {
+      "zh": "在校期间多次面向学生/家长举办学习经验/保研经验等各类分享会",
+      "en": "During my time at school, I held various sharing sessions for students and parents, covering topics such as study experiences and applications for graduate school."
+    },
+    "images": [
+      "/uploads/1776004033294-700132955.jpg",
+      "/uploads/1776067882277-922687579.jpg",
+      "/uploads/1776067889392-364647783.jpg"
+    ]
+  },
+  {
+    "id": 5,
+    "url": "/uploads/1776003956135-237040117.jpg",
+    "title": {
+      "zh": "英语演讲大赛",
+      "en": "English Speech Contest"
+    },
+    "description": {
+      "zh": "代表学院参加校英语演讲大赛",
+      "en": "Represent the college to participate in the school's English speech contest"
+    }
+  },
+  {
+    "id": 6,
+    "url": "/uploads/1776067677088-103846930.jpg",
+    "images": [
+      "/uploads/1776067677088-103846930.jpg",
+      "/uploads/1776067842010-477510408.jpg",
+      "/uploads/1776067848779-992815314.jpg",
+      "/uploads/1776067833190-997219989.jpg"
+    ],
+    "title": {
+      "zh": "华为 - 2025开发者大会",
+      "en": "Huawei - 2025 Developer Conference"
+    },
+    "description": {
+      "zh": "参与为期三天的华为开发者大会，在早餐会等活动与技术/产品负责人深度交流",
+      "en": "Participated in the three-day Huawei Developer Conference, having in-depth exchanges with technical/product managers during breakfast sessions and other activities."
+    }
+  },
+  {
+    "id": 7,
+    "url": "/uploads/1776004228113-498961451.jpg",
+    "title": {
+      "zh": "大学生互联网+挑战杯",
+      "en": "Undergraduate Students' \"Internet Plus\" Challenge Cup"
+    },
+    "description": {
+      "zh": "学院唯一入选，最终获得银奖",
+      "en": "The college was the only one to be selected and ultimately won the silver award."
+    },
+    "images": [
+      "/uploads/1776004228113-498961451.jpg",
+      "/uploads/1776144635768-961087060.png",
+      "/uploads/1776145306735-68634429.png"
+    ]
+  },
+  {
+    "id": 8,
+    "url": "/uploads/1776003781763-409603271.jpg",
+    "title": {
+      "zh": "学生会干部成员合影",
+      "en": "Group photo of the student union cadres."
+    },
+    "description": {
+      "zh": "本科在校期间任学生会主席，获优秀学生骨干称号",
+      "en": "During my undergraduate years, I served as the president of the student union and was awarded the title of \"Outstanding Student Leader\"."
+    },
+    "images": [
+      "/uploads/1776003781763-409603271.jpg",
+      "/uploads/1776145241776-21449692.png"
+    ]
+  },
+  {
+    "id": 9,
+    "url": "/uploads/1776004129476-781793985.jpg",
+    "title": {
+      "zh": "音乐节目主唱/主办",
+      "en": "The lead singer of the music program"
+    },
+    "description": {
+      "zh": "在学生会多次举办音乐节，也作为演出人员参与歌唱节目",
+      "en": "During my school years, apart from organizing several music festivals, I also participated as a performer in singing programs."
+    },
+    "images": [
+      "/uploads/1776004129476-781793985.jpg",
+      "/uploads/1776144805755-491837456.png"
+    ]
+  }
+]

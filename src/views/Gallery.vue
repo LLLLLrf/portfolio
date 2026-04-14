@@ -12,144 +12,318 @@ export default {
 	},
 	data() {
 		return {
-			projects: [],
 			galleryImages: [],
-			selectedImage: null,
+			selectedGroup: null,
+			selectedImageIndex: 0,
 			isModalOpen: false,
-			showLeftArrow: false,
-			showRightArrow: false,
-			scrollContainer: null,
-			loadedImages: new Set()
+			loadedImages: new Set(),
+			currentRotation: 0,
+			isDragging: false,
+			startX: 0,
+			currentX: 0,
+			startRotation: 0,
+			isAutoRotating: true,
+			loadTimeout: null,
+			pageDescription: {
+				zh: '使用 ← → 键切换，空格查看详情',
+				en: 'Use the ← → keys to switch, and space to view details'
+			},
+			noImagesText: {
+				zh: '暂无图片',
+				en: 'No images found in projects.'
+			}
 		};
 	},
+	computed: {
+		// 计算卡片样式
+		cardStyles() {
+			const quantity = this.galleryImages.length || 1;
+			return this.galleryImages.map((group, index) => {
+				const rotateY = (360 / quantity) * index + this.currentRotation;
+				return {
+					'--index': index,
+					'--rotate-y': `${rotateY}deg`
+				};
+			});
+		},
+		// 计算inner样式
+		innerStyle() {
+			const quantity = this.galleryImages.length || 1;
+			return {
+				'--quantity': quantity,
+				'transform': `perspective(1000px) rotateX(-2deg) rotateY(${-this.currentRotation}deg)`
+			};
+		}
+	},
 	mounted() {
-		// 直接加载数据，不从sessionStorage读取
 		this.loadData();
-		document.addEventListener('keydown', this.escapeKeyHandler);
+		document.addEventListener('keydown', this.keyboardHandler);
+		this.startAutoRotation();
 		
-		this.$nextTick(() => {
-			this.scrollContainer = this.$refs.scrollContainer;
-			if (this.scrollContainer) {
-				this.scrollContainer.addEventListener('scroll', this.updateArrows);
-				this.updateArrows();
-			}
-		});
+		// 鼠标/触摸事件
+		this.$refs.wrapper?.addEventListener('mousedown', this.handleMouseDown);
+		this.$refs.wrapper?.addEventListener('touchstart', this.handleTouchStart, { passive: false });
 	},
 	beforeUnmount() {
-		// 组件卸载时清除定时器
 		if (this.loadTimeout) {
 			clearTimeout(this.loadTimeout);
 		}
+		this.stopAutoRotation();
+		document.removeEventListener('keydown', this.keyboardHandler);
+		
+		this.$refs.wrapper?.removeEventListener('mousedown', this.handleMouseDown);
+		this.$refs.wrapper?.removeEventListener('touchstart', this.handleTouchStart);
+		document.removeEventListener('mousemove', this.handleMouseMove);
+		document.removeEventListener('mouseup', this.handleMouseUp);
+		document.removeEventListener('touchmove', this.handleTouchMove);
+		document.removeEventListener('touchend', this.handleTouchEnd);
 	},
 	methods: {
 		async loadData() {
-			this.projects = await apiService.getProjects();
 			this.galleryImages = await apiService.getGallery();
+			console.log('Gallery.vue - Loaded gallery groups:', this.galleryImages);
 			this.checkAllImagesLoaded();
 		},
+		
+		// 获取图组的所有图片
+		getImageUrls(group) {
+			if (group.images && Array.isArray(group.images) && group.images.length > 0) {
+				return group.images;
+			}
+			return [group.url];
+		},
+		
+		// 获取图组的封面图片
+		getCoverImageUrl(group) {
+			const urls = this.getImageUrls(group);
+			return urls[0] || '';
+		},
+		
+		// 获取图组的图片数量
+		getImageCount(group) {
+			return this.getImageUrls(group).length;
+		},
+		
 		checkAllImagesLoaded() {
-			this.allImages.forEach(img => {
+			this.galleryImages.forEach(group => {
+				const coverUrl = this.getCoverImageUrl(group);
 				const image = new Image();
 				image.onload = () => {
-					this.loadedImages.add(img.id);
+					this.loadedImages.add(group.id);
 				};
 				image.onerror = () => {
-					console.warn('Failed to load gallery image:', img.url || img.img);
-					this.loadedImages.add(img.id);
+					console.warn('Failed to load gallery image:', coverUrl);
+					this.loadedImages.add(group.id);
 				};
-				image.src = img.url || img.img;
+				image.src = coverUrl;
 				if (image.complete) {
-					this.loadedImages.add(img.id);
+					this.loadedImages.add(group.id);
 				}
 			});
 			
 			// 设置超时保护，最多等待5秒
 			this.loadTimeout = setTimeout(() => {
-				this.allImages.forEach(img => {
-					if (!this.loadedImages.has(img.id)) {
-						console.warn('Gallery image load timeout, showing anyway:', img.url || img.img);
-						this.loadedImages.add(img.id);
+				this.galleryImages.forEach(group => {
+					if (!this.loadedImages.has(group.id)) {
+						console.warn('Gallery image load timeout, showing anyway:', this.getCoverImageUrl(group));
+						this.loadedImages.add(group.id);
 					}
 				});
 			}, 5000);
 		},
-		saveLoadedImages() {
-			sessionStorage.setItem('gallery_loaded_images', JSON.stringify(Array.from(this.loadedImages)));
+		
+		isImageLoaded(group) {
+			return this.loadedImages.has(group.id);
 		},
-		isImageLoaded(imageId) {
-			return this.loadedImages.has(imageId);
+		
+		// 键盘处理
+		keyboardHandler(event) {
+			if (event.key === 'Escape') {
+				if (this.isModalOpen) {
+					this.closeImageModal();
+				}
+			} else if (event.key === ' ' && this.isModalOpen) {
+				event.preventDefault();
+				this.closeImageModal();
+			} else if (event.key === 'ArrowLeft' && !this.isModalOpen) {
+				this.rotateLeft();
+			} else if (event.key === 'ArrowRight' && !this.isModalOpen) {
+				this.rotateRight();
+			} else if (event.key === 'ArrowLeft' && this.isModalOpen) {
+				this.prevModalImage();
+			} else if (event.key === 'ArrowRight' && this.isModalOpen) {
+				this.nextModalImage();
+			} else if (event.key === ' ' && !this.isModalOpen) {
+				event.preventDefault();
+				const frontGroup = this.getFrontGroup();
+				if (frontGroup) {
+					this.handleGroupClick(frontGroup);
+				}
+			}
 		},
-		onImageLoad(imageId) {
-			this.loadedImages.add(imageId);
-			this.saveLoadedImages();
+		
+		// 获取当前最前面的图组
+		getFrontGroup() {
+			if (this.galleryImages.length === 0) return null;
+			
+			const quantity = this.galleryImages.length;
+			const step = 360 / quantity;
+			
+			// 计算哪个卡片在最前面
+			// 我们需要找到满足 step * i ≈ currentRotation 的 i
+			let normalizedRotation = ((this.currentRotation % 360) + 360) % 360;
+			
+			// 找到最接近的索引
+			let frontIndex = Math.round(normalizedRotation / step) % quantity;
+			if (frontIndex < 0) frontIndex += quantity;
+			
+			return this.galleryImages[frontIndex];
 		},
-		openImageModal(image) {
-			this.selectedImage = image;
+		
+		// 向左旋转
+		rotateLeft() {
+			const quantity = this.galleryImages.length || 1;
+			this.currentRotation -= 360 / quantity;
+		},
+		
+		// 向右旋转
+		rotateRight() {
+			const quantity = this.galleryImages.length || 1;
+			this.currentRotation += 360 / quantity;
+		},
+		
+		// 开始自动旋转
+		startAutoRotation() {
+			this.autoRotateInterval = setInterval(() => {
+				if (this.isAutoRotating && !this.isDragging) {
+					this.rotateRight();
+				}
+			}, 6000);
+		},
+		
+		// 停止自动旋转
+		stopAutoRotation() {
+			if (this.autoRotateInterval) {
+				clearInterval(this.autoRotateInterval);
+			}
+		},
+		
+		// 点击图组卡片 - 直接进入大图模式
+		handleGroupClick(group) {
+			this.selectedGroup = group;
+			this.selectedImageIndex = 0;
 			this.isModalOpen = true;
 			document.body.style.overflow = 'hidden';
+			this.isAutoRotating = false;
 		},
+		
+		// 关闭图片查看模态框
 		closeImageModal() {
 			this.isModalOpen = false;
 			setTimeout(() => {
-				this.selectedImage = null;
+				this.selectedImageIndex = 0;
 				document.body.style.overflow = '';
+				this.isAutoRotating = true;
 			}, 300);
 		},
-		escapeKeyHandler(event) {
-			if (event.key === 'Escape' && this.isModalOpen) {
-				this.closeImageModal();
+		
+		// 模态框中上一张图片
+		prevModalImage() {
+			if (!this.selectedGroup) return;
+			const urls = this.getImageUrls(this.selectedGroup);
+			if (this.selectedImageIndex > 0) {
+				this.selectedImageIndex--;
+			} else {
+				this.selectedImageIndex = urls.length - 1;
 			}
 		},
-		scrollLeft() {
-			if (this.scrollContainer) {
-				this.scrollContainer.scrollBy({ left: -300, behavior: 'smooth' });
+		
+		// 模态框中下一张图片
+		nextModalImage() {
+			if (!this.selectedGroup) return;
+			const urls = this.getImageUrls(this.selectedGroup);
+			if (this.selectedImageIndex < urls.length - 1) {
+				this.selectedImageIndex++;
+			} else {
+				this.selectedImageIndex = 0;
 			}
 		},
-		scrollRight() {
-			if (this.scrollContainer) {
-				this.scrollContainer.scrollBy({ left: 300, behavior: 'smooth' });
-			}
+		
+		// 获取模态框当前显示的图片URL
+		getModalImageUrl() {
+			if (!this.selectedGroup) return '';
+			const urls = this.getImageUrls(this.selectedGroup);
+			return urls[this.selectedImageIndex] || urls[0];
 		},
-		updateArrows() {
-			if (!this.scrollContainer) return;
+		
+		// 鼠标事件处理
+		handleMouseDown(event) {
+			this.isDragging = true;
+			this.isAutoRotating = false;
+			this.startX = event.clientX;
+			this.currentX = event.clientX;
+			this.startRotation = this.currentRotation;
 			
-			const { scrollLeft, scrollWidth, clientWidth } = this.scrollContainer;
-			this.showLeftArrow = scrollLeft > 0;
-			this.showRightArrow = scrollLeft < (scrollWidth - clientWidth);
-		}
-	},
-	computed: {
-		allImages() {
-			const images = [];
+			document.addEventListener('mousemove', this.handleMouseMove);
+			document.addEventListener('mouseup', this.handleMouseUp);
+		},
+		
+		handleMouseMove(event) {
+			if (!this.isDragging) return;
+			this.currentX = event.clientX;
+			const diff = (this.currentX - this.startX) * 0.3;
+			this.currentRotation = this.startRotation + diff;
+		},
+		
+		handleMouseUp() {
+			if (!this.isDragging) return;
 			
-			// 添加单独上传的 Gallery 图片
-			this.galleryImages.forEach(img => {
-				images.push({
-					...img,
-					isGalleryOnly: true
-				});
-			});
+			const quantity = this.galleryImages.length || 1;
+			const step = 360 / quantity;
+			const normalizedRotation = ((this.currentRotation % 360) + 360) % 360;
+			const nearestStep = Math.round(normalizedRotation / step) * step;
+			this.currentRotation = this.currentRotation - (normalizedRotation - nearestStep);
 			
-			// 添加项目图片
-			this.projects.forEach(project => {
-				if (project.images) {
-					project.images.forEach(img => {
-						images.push({
-							...img,
-							projectTitle: project.title,
-							isGalleryOnly: false
-						});
-					});
-				}
-			});
+			this.isDragging = false;
+			this.isAutoRotating = true;
+			document.removeEventListener('mousemove', this.handleMouseMove);
+			document.removeEventListener('mouseup', this.handleMouseUp);
+		},
+		
+		// 触摸事件处理
+		handleTouchStart(event) {
+			event.preventDefault();
+			this.isDragging = true;
+			this.isAutoRotating = false;
+			this.startX = event.touches[0].clientX;
+			this.currentX = event.touches[0].clientX;
+			this.startRotation = this.currentRotation;
 			
-			return images;
-		}
-	},
-	unmounted() {
-		document.removeEventListener('keydown', this.escapeKeyHandler);
-		if (this.scrollContainer) {
-			this.scrollContainer.removeEventListener('scroll', this.updateArrows);
+			document.addEventListener('touchmove', this.handleTouchMove, { passive: false });
+			document.addEventListener('touchend', this.handleTouchEnd);
+		},
+		
+		handleTouchMove(event) {
+			if (!this.isDragging) return;
+			event.preventDefault();
+			this.currentX = event.touches[0].clientX;
+			const diff = (this.currentX - this.startX) * 0.3;
+			this.currentRotation = this.startRotation + diff;
+		},
+		
+		handleTouchEnd() {
+			if (!this.isDragging) return;
+			
+			const quantity = this.galleryImages.length || 1;
+			const step = 360 / quantity;
+			const normalizedRotation = ((this.currentRotation % 360) + 360) % 360;
+			const nearestStep = Math.round(normalizedRotation / step) * step;
+			this.currentRotation = this.currentRotation - (normalizedRotation - nearestStep);
+			
+			this.isDragging = false;
+			this.isAutoRotating = true;
+			document.removeEventListener('touchmove', this.handleTouchMove);
+			document.removeEventListener('touchend', this.handleTouchEnd);
 		}
 	}
 };
@@ -157,76 +331,45 @@ export default {
 
 <template>
 	<div class="gallery-page">
-		<div class="container mx-auto py-12 px-4">
-			<div class="text-center mb-12">
+		<div class="container mx-auto py-10 px-4">
+			<div class="text-center mb-8">
 				<h1 class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
 					Gallery
 				</h1>
 				<p class="text-gray-600 dark:text-gray-400 text-lg">
-					All project images in one place
+					{{ t(pageDescription) }}
 				</p>
 			</div>
 
-			<div v-if="allImages.length > 0" class="relative">
-				<button
-					v-if="showLeftArrow"
-					@click="scrollLeft"
-					class="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow-lg rounded-full p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 opacity-80 hover:opacity-100"
-					aria-label="Scroll left"
-				>
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-					</svg>
-				</button>
-				
-				<button
-					v-if="showRightArrow"
-					@click="scrollRight"
-					class="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow-lg rounded-full p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 opacity-80 hover:opacity-100"
-					aria-label="Scroll right"
-				>
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-					</svg>
-				</button>
-				
-				<div ref="scrollContainer" class="flex gap-6 overflow-x-auto pb-8 snap-x snap-mandatory gallery-scrollbar">
-					<div
-						class="group flex-shrink-0 w-80 sm:w-96 md:w-80 snap-start"
-						v-for="image in allImages"
-						:key="image.id"
+			<div v-if="galleryImages.length > 0" class="gallery-container">
+				<div class="wrapper" ref="wrapper">
+					<div 
+						class="inner" 
+						:style="innerStyle"
+						:class="{ 'no-animation': isDragging }"
 					>
-						<div 
-							class="bg-secondary-light dark:bg-ternary-dark rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer h-full gallery-card"
-							@click="openImageModal(image)"
+						<div
+							v-for="(group, index) in galleryImages"
+							:key="group.id"
+							class="card"
+							:style="cardStyles[index]"
+							@click="handleGroupClick(group)"
 						>
-							<div class="relative overflow-hidden">
-								<div v-if="!isImageLoaded(image.id)" class="gallery-image-skeleton">
-									<SkeletonLoader width="100%" height="288px" rounded="lg" />
+							<div class="img-container">
+								<div v-if="!isImageLoaded(group)" class="gallery-image-skeleton">
+									<SkeletonLoader width="100%" height="100%" rounded="lg" />
 								</div>
 								<img
-								:src="image.url || image.img"
-								:class="['w-full h-64 sm:h-72 object-cover rounded-t-xl gallery-image', isImageLoaded(image.id) ? 'image-visible' : 'image-hidden']"
-								:alt="t(image.title) || t(image.caption)"
-								loading="lazy"
-								@load="onImageLoad(image.id)"
-								@error="onImageLoad(image.id)"
-							/>
-								<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center">
-									<div class="opacity-0 group-hover:opacity-100 transition-all duration-300 mb-4">
-										<svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white drop-shadow-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-										</svg>
-									</div>
+									:src="getCoverImageUrl(group)"
+									:class="['img', isImageLoaded(group) ? 'image-visible' : 'image-hidden']"
+									:alt="t(group.title)"
+								/>
+								<div class="image-count-badge">
+									{{ getImageCount(group) }} 张
 								</div>
-							</div>
-							<div class="p-4">
-								<p class="gallery-title text-base sm:text-lg text-center">
-									{{ t(image.title) || t(image.caption) }}
-								</p>
-								<p v-if="image.projectTitle && !image.isGalleryOnly" class="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
-									{{ t(image.projectTitle) }}
-								</p>
+								<div class="card-content">
+									<p class="card-title">{{ t(group.title) }}</p>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -235,12 +378,15 @@ export default {
 
 			<div v-else class="text-center py-20">
 				<p class="text-gray-500 dark:text-gray-400 text-lg">
-					No images found in projects.
+					{{ t(noImagesText) }}
 				</p>
 			</div>
 
+
+
+			<!-- 图片查看模态框 -->
 			<div 
-				v-if="isModalOpen && selectedImage" 
+				v-if="isModalOpen && selectedGroup" 
 				class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 transition-opacity duration-400 modal-overlay"
 				@click="closeImageModal"
 			>
@@ -251,12 +397,36 @@ export default {
 				>
 					<div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden max-w-5xl">
 						<div class="relative">
+							<!-- 左右切换箭头 -->
+							<button 
+								@click="prevModalImage"
+								class="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-gray-700/90 hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-2 rounded-full shadow-lg transition-all duration-300 backdrop-blur-sm z-10"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+								</svg>
+							</button>
+							<button 
+								@click="nextModalImage"
+								class="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-gray-700/90 hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-2 rounded-full shadow-lg transition-all duration-300 backdrop-blur-sm z-10"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+								</svg>
+							</button>
+							
 							<img 
-								:src="selectedImage.url || selectedImage.img" 
-								:alt="t(selectedImage.title) || t(selectedImage.caption)"
+								:src="getModalImageUrl()" 
+								:alt="t(selectedGroup.title)"
 								class="w-full h-auto max-h-[75vh] object-contain modal-image"
 								@click.stop
 							/>
+							
+							<!-- 图片数量指示器 -->
+							<div class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium">
+								{{ selectedImageIndex + 1 }} / {{ getImageCount(selectedGroup) }}
+							</div>
+							
 							<button 
 								@click="closeImageModal"
 								class="absolute top-3 right-3 bg-white/90 dark:bg-gray-700/90 hover:bg-white dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-2 rounded-full shadow-lg transition-all duration-300 backdrop-blur-sm"
@@ -269,13 +439,10 @@ export default {
 						</div>
 						<div class="p-4 bg-gray-50 dark:bg-gray-900">
 							<p class="font-general-semibold text-lg text-center text-gray-800 dark:text-gray-200 mb-2">
-								{{ t(selectedImage.title) || t(selectedImage.caption) }}
+								{{ t(selectedGroup.title) }}
 							</p>
-							<p v-if="selectedImage.description" class="font-general-regular text-sm text-center text-gray-600 dark:text-gray-400 whitespace-pre-line">
-								{{ t(selectedImage.description) }}
-							</p>
-							<p v-if="selectedImage.projectTitle && !selectedImage.isGalleryOnly" class="text-sm text-center text-gray-500 dark:text-gray-400 mt-2">
-								From: {{ t(selectedImage.projectTitle) }}
+							<p v-if="selectedGroup.description" class="font-general-regular text-sm text-center text-gray-600 dark:text-gray-400 whitespace-pre-line">
+								{{ t(selectedGroup.description) }}
 							</p>
 						</div>
 					</div>
@@ -290,56 +457,98 @@ export default {
 	min-height: calc(100vh - 200px);
 }
 
-.gallery-scrollbar {
-	scrollbar-width: auto;
-	scrollbar-color: linear-gradient(90deg, #06b6d4, #8b5cf6, #ec4899) transparent;
-	-ms-overflow-style: auto;
+.gallery-container {
+	height: calc(100vh - 200px);
+	margin-top: -50px;
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
-.gallery-scrollbar::-webkit-scrollbar {
-	width: 8px;
-	height: 8px;
+.wrapper {
+	width: 100%;
+	height: 100%;
+	position: relative;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: visible;
 }
 
-.gallery-scrollbar::-webkit-scrollbar-track {
-	background: rgba(31, 41, 55, 0.3);
-	border-radius: 4px;
+.inner {
+	--w: 280px;
+	--translateZ: 500px;
+	--rotateX: -15deg;
+	--perspective: 1000px;
+	position: absolute;
+	width: var(--w);
+	top: 10%;
+	left: calc(50% - (var(--w) / 2) - 2.5px);
+	z-index: 2;
+	transform-style: preserve-3d;
+	transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.gallery-scrollbar::-webkit-scrollbar-thumb {
-	background: linear-gradient(90deg, #06b6d4, #8b5cf6, #ec4899);
-	border-radius: 4px;
-	opacity: 1 !important;
-	visibility: visible !important;
+.inner.no-animation {
+	transition: none;
+}
+
+.card {
+	position: absolute;
+	/* border: 2px solid rgba(100, 255, 218, 0.3); */
+	border-radius: 16px;
+	overflow: hidden;
+	width: 98%;
+	height: auto;
+	top: 0;
+	left: 0;
+	transform: rotateY(calc((360deg / var(--quantity)) * var(--index)))
+		translateZ(var(--translateZ));
+	background: linear-gradient(135deg, 
+		rgba(100, 255, 218, 0.05) 0%, 
+		rgba(100, 255, 218, 0.02) 100%);
+	cursor: pointer;
 	transition: all 0.3s ease;
+	backface-visibility: visible;
 }
 
-.gallery-scrollbar::-webkit-scrollbar-thumb:hover {
-	background: linear-gradient(90deg, #0891b2, #7c3aed, #db2777);
-	box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+.card:hover {
+	transform: rotateY(calc((360deg / var(--quantity)) * var(--index)))
+		translateZ(calc(var(--translateZ) + 30px))
+		scale(1.03);
+	box-shadow: 0 20px 60px rgba(100, 255, 218, 0.2);
+	/* border-color: rgba(100, 255, 218, 0.6); */
 }
 
-.gallery-card {
-	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+.img-container {
+	width: 100%;
+	aspect-ratio: 4 / 3.6;
+	overflow: hidden;
+	position: relative;
+	background: linear-gradient(135deg, 
+		rgba(100, 255, 218, 0.05) 0%, 
+		rgba(100, 255, 218, 0.02) 100%);
 }
 
-.gallery-card:hover {
-	box-shadow: 0 20px 40px -15px rgba(6, 182, 212, 0.3), 0 20px 40px -15px rgba(139, 92, 246, 0.2);
-}
-
-@media (prefers-color-scheme: light) {
-	.gallery-card:hover {
-		box-shadow: 0 10px 30px -10px rgba(6, 182, 212, 0.15), 0 10px 30px -10px rgba(139, 92, 246, 0.1);
-	}
+.img-container img {
+	width: 100%;
+	height: 100%;
+	display: block;
+	object-fit: cover;
 }
 
 .gallery-image-skeleton {
-	height: 288px;
+	width: 100%;
+	height: 100%;
 }
 
-.gallery-image {
-	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-	filter: brightness(0.95);
+.img {
+	width: 100%;
+	height: 100%;
+	display: block;
+	object-fit: cover;
 }
 
 .image-hidden {
@@ -363,30 +572,54 @@ export default {
 	}
 }
 
-.gallery-card:hover .gallery-image {
-	filter: brightness(1.05);
+.card-content {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	padding: 24px 16px 16px;
+	background: linear-gradient(
+		to top,
+		rgba(0, 0, 0, 0.85) 0%,
+		rgba(0, 0, 0, 0.6) 50%,
+		rgba(0, 0, 0, 0) 100%
+	);
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	align-items: center;
+	z-index: 10;
 }
 
-.gallery-title {
+.image-count-badge {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	width: 30px;
+	background: rgba(0,0,0, 0.15);
+	color: white;
+	padding: 4px 4px;
+	border-radius: 20px;
+	font-size: 8px;
+	font-weight: 700;
+	backdrop-filter: blur(8px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.0);
+	z-index: 10;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.card-title {
+	font-size: 10px;
+	font-weight: 700;
+	color: #ffffff;
+	text-align: center;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	max-width: 100%;
-	font-weight: 800;
-	color: #111827;
-	transition: all 0.3s ease;
-}
-
-.dark .gallery-title {
-	color: #f9fafb;
-}
-
-.gallery-card:hover .gallery-title {
-	background: linear-gradient(90deg, #06b6d4, #8b5cf6, #ec4899);
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-	background-clip: text;
-	letter-spacing: 0.5px;
+	width: 100%;
+	margin-bottom: -6px;
+	line-height: 1.2;
+	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
 .modal-overlay {
@@ -439,5 +672,32 @@ img {
 
 img.loading {
 	opacity: 0.5;
+}
+
+/* 响应式调整 */
+@media (max-width: 640px) {
+	.gallery-container {
+		height: 550px;
+	}
+	
+	.inner {
+		--w: 260px;
+		--translateZ: 400px;
+	}
+	
+	.card-content {
+		padding: 20px 12px 12px;
+	}
+	
+	.card-title {
+		font-size: 14px;
+	}
+	
+	.image-count-badge {
+		font-size: 11px;
+		padding: 4px 10px;
+		top: 8px;
+		right: 8px;
+	}
 }
 </style>

@@ -5,6 +5,7 @@ import { useLanguage } from '../composables/useLanguage';
 import { useRouter } from 'vue-router';
 import feather from 'feather-icons';
 import draggable from 'vuedraggable';
+import { toastSuccess, toastError, toastInfo } from '../services/toastService';
 
 export default {
   components: {
@@ -36,7 +37,8 @@ export default {
       technologiesInput: '',
       relatedProjectsInput: '',
       galleryImages: [],
-      editingGalleryImage: null
+      editingGalleryImage: null,
+      newImageUrl: ''
     };
   },
   watch: {
@@ -361,7 +363,7 @@ export default {
           const result = await apiService.uploadImage(file);
           this.editingProject.thumbnail = result.url;
         } catch (error) {
-          alert('图片上传失败，请重试');
+          toastError('图片上传失败，请重试');
           console.error('Thumbnail upload error:', error);
         }
       }
@@ -391,7 +393,7 @@ export default {
           const result = await apiService.uploadImage(file);
           this.editingProject.images[index].url = result.url;
         } catch (error) {
-          alert('图片上传失败，请重试');
+          toastError('图片上传失败，请重试');
           console.error('Image upload error:', error);
         }
       }
@@ -421,7 +423,7 @@ export default {
           const result = await apiService.uploadImage(file);
           this.aboutMeData.avatar = result.url;
         } catch (error) {
-          alert('头像上传失败，请重试');
+          toastError('头像上传失败，请重试');
           console.error('Avatar upload error:', error);
         }
       }
@@ -499,7 +501,7 @@ export default {
         await this.loadResumes();
         event.target.value = '';
       } catch (error) {
-        alert(error.message);
+        toastError(error.message);
       } finally {
         this.isUploading = false;
       }
@@ -535,10 +537,10 @@ export default {
           // 重新加载项目列表
           await this.loadProjects();
           
-          alert('项目 ID 已重置成功！');
+          toastSuccess('项目 ID 已重置成功！');
         } catch (error) {
           console.error('Reset project IDs error:', error);
-          alert('重置项目 ID 失败，请重试');
+          toastError('重置项目 ID 失败，请重试');
         }
       }
     },
@@ -613,10 +615,10 @@ export default {
       const configString = JSON.stringify(config, null, 2);
       
       navigator.clipboard.writeText(configString).then(() => {
-        alert('配置已复制到剪贴板，请打开 public/files/cv/config.json 并粘贴替换内容');
+        toastSuccess('配置已复制到剪贴板，请打开 public/files/cv/config.json 并粘贴替换内容');
       }).catch(err => {
         console.error('复制失败:', err);
-        alert('复制失败，请手动复制配置');
+        toastError('复制失败，请手动复制配置');
       });
     },
     
@@ -636,10 +638,10 @@ export default {
         // 重新加载项目列表
         await this.loadProjects();
         
-        alert('项目排序已更新成功！');
+        toastSuccess('项目排序已更新成功！');
       } catch (error) {
         console.error('Update project order error:', error);
-        alert('更新项目排序失败，请重试');
+        toastError('更新项目排序失败，请重试');
       }
     },
 
@@ -654,6 +656,7 @@ export default {
       this.editingGalleryImage = {
         id: null,
         url: '',
+        images: [],
         title: { zh: '', en: '' },
         description: { zh: '', en: '' }
       };
@@ -662,6 +665,14 @@ export default {
 
     editGalleryImage(image) {
       this.editingGalleryImage = JSON.parse(JSON.stringify(image));
+      // 确保images数组存在
+      if (!this.editingGalleryImage.images) {
+        this.editingGalleryImage.images = [];
+      }
+      // 如果有url但没有images，则将url添加到images
+      if (this.editingGalleryImage.url && this.editingGalleryImage.images.length === 0) {
+        this.editingGalleryImage.images = [this.editingGalleryImage.url];
+      }
       this.isGalleryModalOpen = true;
     },
 
@@ -683,29 +694,96 @@ export default {
       const file = event.target.files[0];
       if (file) {
         try {
-          // 删除旧图片
-          const oldImageUrl = this.editingGalleryImage.url;
-          if (oldImageUrl && oldImageUrl.startsWith('/uploads/')) {
-            try {
-              await fetch(`${API_BASE_URL}/upload/image`, {
-                method: 'DELETE',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ filename: oldImageUrl.replace('/uploads/', '') })
-              });
-            } catch (error) {
-              console.error('Failed to delete old image:', error);
-            }
-          }
-          
-          // 上传新图片
+          // 上传新图片到图组
           const result = await apiService.uploadImage(file);
-          this.editingGalleryImage.url = result.url;
+          if (!this.editingGalleryImage.images) {
+            this.editingGalleryImage.images = [];
+          }
+          this.editingGalleryImage.images.push(result.url);
+          // 如果是第一张图片，同时设置url
+          if (this.editingGalleryImage.images.length === 1) {
+            this.editingGalleryImage.url = result.url;
+          }
+          event.target.value = '';
         } catch (error) {
-          alert('图片上传失败，请重试');
+          toastError('图片上传失败，请重试');
           console.error('Image upload error:', error);
         }
+      }
+    },
+    
+    // 添加图片URL到图组
+    addGalleryImageUrl() {
+      if (!this.newImageUrl || !this.newImageUrl.trim()) return;
+      if (!this.editingGalleryImage.images) {
+        this.editingGalleryImage.images = [];
+      }
+      this.editingGalleryImage.images.push(this.newImageUrl.trim());
+      // 如果是第一张图片，同时设置url
+      if (this.editingGalleryImage.images.length === 1) {
+        this.editingGalleryImage.url = this.newImageUrl.trim();
+      }
+      this.newImageUrl = '';
+    },
+    
+    // 从图组中移除图片
+    removeGalleryImage(index) {
+      if (!this.editingGalleryImage.images) return;
+      this.editingGalleryImage.images.splice(index, 1);
+      // 如果移除了第一张图片，更新url
+      if (index === 0 && this.editingGalleryImage.images.length > 0) {
+        this.editingGalleryImage.url = this.editingGalleryImage.images[0];
+      } else if (this.editingGalleryImage.images.length === 0) {
+        this.editingGalleryImage.url = '';
+      }
+    },
+    
+    // 上移图片
+    moveGalleryImageUp(index) {
+      if (!this.editingGalleryImage.images || index <= 0) return;
+      const temp = this.editingGalleryImage.images[index];
+      this.editingGalleryImage.images.splice(index, 1);
+      this.editingGalleryImage.images.splice(index - 1, 0, temp);
+      // 如果移动了第一张图片，更新url
+      if (index === 1) {
+        this.editingGalleryImage.url = this.editingGalleryImage.images[0];
+      }
+    },
+    
+    // 下移图片
+    moveGalleryImageDown(index) {
+      if (!this.editingGalleryImage.images || index >= this.editingGalleryImage.images.length - 1) return;
+      const temp = this.editingGalleryImage.images[index];
+      this.editingGalleryImage.images.splice(index, 1);
+      this.editingGalleryImage.images.splice(index + 1, 0, temp);
+      // 如果移动了第一张图片，更新url
+      if (index === 0) {
+        this.editingGalleryImage.url = this.editingGalleryImage.images[0];
+      }
+    },
+    
+    async handleGalleryDragEnd() {
+      try {
+        // 重新排序gallery图片的ID
+        const updatedGalleryImages = this.galleryImages.map((image, index) => ({
+          ...image,
+          id: index + 1
+        }));
+        
+        console.log('Updating gallery image order:', updatedGalleryImages.map(p => ({ id: p.id, title: p.title.zh || p.title.en })));
+        
+        // 保存所有gallery图片
+        for (const image of updatedGalleryImages) {
+          await apiService.saveGalleryImage(image);
+        }
+        
+        // 重新加载gallery图片
+        await this.loadGallery();
+        
+        toastSuccess('Gallery图片排序已更新成功！');
+      } catch (error) {
+        console.error('Update gallery order error:', error);
+        toastError('更新Gallery图片排序失败，请重试');
       }
     }
   }
@@ -1109,40 +1187,53 @@ export default {
         </p>
       </div>
 
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          v-for="image in galleryImages"
-          :key="image.id"
-          class="bg-secondary-light dark:bg-ternary-dark rounded-xl shadow-lg overflow-hidden"
+      <div v-else class="bg-secondary-light dark:bg-ternary-dark rounded-xl shadow-lg overflow-hidden">
+        <draggable
+          v-model="galleryImages"
+          @end="handleGalleryDragEnd"
+          item-key="id"
+          handle=".drag-handle"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6"
         >
-          <div class="relative">
-            <img :src="image.url" class="w-full h-48 object-cover" :alt="t(image.title)" />
-          </div>
-          <div class="p-4">
-            <h4 class="font-general-semibold text-lg text-ternary-dark dark:text-ternary-light mb-2">
-              {{ t(image.title) }}
-            </h4>
-            <p v-if="t(image.description)" class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              {{ t(image.description) }}
-            </p>
-            <div class="flex gap-2">
-              <button
-                @click="editGalleryImage(image)"
-                class="flex-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm inline-flex items-center justify-center gap-1"
-              >
-                <i data-feather="edit" class="w-4 h-4"></i>
-                编辑
-              </button>
-              <button
-                @click="deleteGalleryImage(image.id)"
-                class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm inline-flex items-center gap-1"
-              >
-                <i data-feather="trash" class="w-4 h-4"></i>
-                删除
-              </button>
+          <template #item="{ element: image }">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+              <div class="relative">
+                <img :src="image.images && image.images.length > 0 ? image.images[0] : image.url" class="w-full h-48 object-cover" :alt="t(image.title)" />
+                <div class="absolute top-2 left-2 drag-handle cursor-move bg-white/90 dark:bg-gray-800/90 rounded-full p-1">
+                  <i data-feather="move" class="w-4 h-4 text-gray-600 dark:text-gray-300"></i>
+                </div>
+                <!-- 图组数量指示器 -->
+                <div v-if="image.images && image.images.length > 1" class="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium">
+                  {{ image.images.length }} 张
+                </div>
+              </div>
+              <div class="p-4">
+                <h4 class="font-general-semibold text-lg text-ternary-dark dark:text-ternary-light mb-2">
+                  {{ t(image.title) }}
+                </h4>
+                <p v-if="t(image.description)" class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  {{ t(image.description) }}
+                </p>
+                <div class="flex gap-2">
+                  <button
+                    @click="editGalleryImage(image)"
+                    class="flex-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm inline-flex items-center justify-center gap-1"
+                  >
+                    <i data-feather="edit" class="w-4 h-4"></i>
+                    编辑
+                  </button>
+                  <button
+                    @click="deleteGalleryImage(image.id)"
+                    class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm inline-flex items-center gap-1"
+                  >
+                    <i data-feather="trash" class="w-4 h-4"></i>
+                    删除
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </template>
+        </draggable>
       </div>
     </div>
 
@@ -1913,7 +2004,7 @@ export default {
         <div class="p-6 space-y-6">
           <div>
             <label class="block font-general-medium text-ternary-dark dark:text-ternary-light mb-2">
-              图片
+              图组图片
             </label>
             <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
               <input
@@ -1923,23 +2014,89 @@ export default {
                 class="hidden"
                 id="gallery-image-input"
               />
-              <div class="text-center">
+              <div class="text-center mb-4">
                 <label
                   for="gallery-image-input"
                   class="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 mb-2 cursor-pointer"
                 >
-                  选择或拖拽图片
+                  上传图片到图组
                 </label>
-                <p class="text-sm text-gray-500 dark:text-gray-400">支持 JPG, PNG, GIF 等格式</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">支持 JPG, PNG, GIF 等格式，可上传多张</p>
               </div>
-              <div v-if="editingGalleryImage.url" class="mt-4">
-                <img :src="editingGalleryImage.url" class="max-h-64 mx-auto rounded" />
+              
+              <!-- 添加图片URL -->
+              <div class="flex gap-2 mb-4">
                 <input
-                  v-model="editingGalleryImage.url"
+                  v-model="newImageUrl"
                   type="text"
                   placeholder="或输入图片URL"
-                  class="w-full mt-2 px-3 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg text-sm"
+                  class="flex-1 px-3 py-2 border border-gray-200 dark:border-secondary-dark rounded-lg text-sm"
+                  @keyup.enter="addGalleryImageUrl"
                 />
+                <button
+                  @click="addGalleryImageUrl"
+                  class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
+                >
+                  添加
+                </button>
+              </div>
+              
+              <!-- 图组图片列表 -->
+              <div v-if="editingGalleryImage.images && editingGalleryImage.images.length > 0" class="space-y-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">
+                    已添加 {{ editingGalleryImage.images.length }} 张图片
+                  </span>
+                </div>
+                <div class="space-y-2">
+                  <div 
+                    v-for="(url, index) in editingGalleryImage.images" 
+                    :key="index"
+                    class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                  >
+                    <img :src="url" class="w-16 h-16 object-cover rounded" />
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm text-gray-700 dark:text-gray-300 truncate">{{ url }}</p>
+                      <p v-if="index === 0" class="text-xs text-green-600 dark:text-green-400">封面图片</p>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <button
+                        v-if="index > 0"
+                        @click="moveGalleryImageUp(index)"
+                        class="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        title="上移"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                        </svg>
+                      </button>
+                      <button
+                        v-if="index < editingGalleryImage.images.length - 1"
+                        @click="moveGalleryImageDown(index)"
+                        class="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        title="下移"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      <button
+                        @click="removeGalleryImage(index)"
+                        class="p-1 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                        title="删除"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 兼容旧的单张图片 -->
+              <div v-else-if="editingGalleryImage.url" class="mt-4">
+                <img :src="editingGalleryImage.url" class="max-h-64 mx-auto rounded" />
               </div>
             </div>
           </div>

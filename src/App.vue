@@ -2,11 +2,14 @@
 import feather from 'feather-icons';
 import AppHeader from './components/shared/AppHeader';
 import AppFooter from './components/shared/AppFooter';
+import Toast from './components/shared/Toast.vue';
+import { setToastInstance } from './services/toastService';
 
 export default {
 	components: {
 		AppHeader,
 		AppFooter,
+		Toast,
 	},
 	data: () => {
 		return {
@@ -15,6 +18,8 @@ export default {
 	},
 	mounted() {
 		feather.replace();
+		// 设置Toast实例
+		setToastInstance(this.$refs.toast);
 	},
 	updated() {
 		feather.replace();
@@ -44,6 +49,9 @@ export default {
 
 		<!-- App footer -->
 		<AppFooter />
+
+		<!-- Toast Component -->
+		<Toast ref="toast" />
 	</div>
 </template>
 

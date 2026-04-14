@@ -3,9 +3,16 @@ import App from './App.vue';
 import router from './router';
 import './assets/css/app.css';
 import BackToTop from 'vue-backtotop';
+import { showToast } from './services/toastService';
 
 const feather = require('feather-icons');
 feather.replace();
+
+// 重写全局alert方法
+window.originalAlert = window.alert;
+window.alert = function(message) {
+  showToast(message, 'info', 3000);
+};
 
 createApp(App)
 	.use(router)
