@@ -15,7 +15,7 @@ export default {
       type: String,
       default: ''
     },
-    class: {
+    imgClass: {
       type: [String, Object, Array],
       default: ''
     },
@@ -125,7 +125,7 @@ export default {
       v-if="!isLoading || !showSkeleton"
       :src="currentSrc"
       :alt="alt"
-      :class="['webp-image', class, { 'image-loading': isLoading, 'image-error': hasError }]"
+      :class="['webp-image', imgClass, { 'image-loading': isLoading, 'image-error': hasError }]"
       :style="{ objectFit }"
       :loading="lazy ? 'lazy' : 'eager'"
       @error="loadImage"

@@ -1,220 +1,191 @@
 <script>
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import { apiService } from '@/services/apiService';
 import { useLanguage } from '@/composables/useLanguage';
 import { convertToWebPUrl } from '@/composables/useImageOptimization';
 import SkeletonLoader from '@/components/shared/SkeletonLoader.vue';
-import WebpImage from '@/components/shared/WebpImage.vue';
 
 export default {
 	name: 'Gallery',
-	components: { SkeletonLoader, WebpImage },
+	components: { SkeletonLoader },
 	setup() {
 		const { t } = useLanguage();
-		return { t };
-	},
-	data() {
-		return {
-			galleryImages: [],
-			selectedGroup: null,
-			selectedImageIndex: 0,
-			isModalOpen: false,
-			loadedImages: new Set(),
-			preloadedImages: new Set(),
-			imageLoadingStates: {},
-			currentRotation: 0,
-			isDragging: false,
-			startX: 0,
-			currentX: 0,
-			startRotation: 0,
-			isAutoRotating: true,
-			loadTimeout: null,
-			isMobile: false,
-			modalTouchStartX: 0,
-			modalTouchStartY: 0,
-			pageDescription: {
-				zh: '使用 ← → 键切换，空格查看详情',
-				en: 'Use the ← → keys to switch, and space to view details'
-			},
-			pageDescriptionMobile: {
-				zh: '点击查看详情，滑动切换图片',
-				en: 'Tap to view, swipe to switch'
-			},
-			noImagesText: {
-				zh: '暂无图片',
-				en: 'No images found in projects.'
-			}
-		};
-	},
-	computed: {
+
+		const galleryImages = ref([]);
+		const selectedGroup = ref(null);
+		const selectedImageIndex = ref(0);
+		const isModalOpen = ref(false);
+		const loadedImages = ref(new Set());
+		const preloadedImages = ref(new Set());
+		const imageLoadingStates = ref({});
+		const currentRotation = ref(0);
+		const isDragging = ref(false);
+		const startX = ref(0);
+		const currentX = ref(0);
+		const startRotation = ref(0);
+		const isAutoRotating = ref(true);
+		const loadTimeout = ref(null);
+		const isMobile = ref(false);
+		const modalTouchStartX = ref(0);
+		const modalTouchStartY = ref(0);
+		const wrapper = ref(null);
+		let autoRotateInterval = null;
+
+		const pageDescription = ref({
+			zh: '使用 ← → 键切换，空格查看详情',
+			en: 'Use the ← → keys to switch, and space to view details'
+		});
+
+		const pageDescriptionMobile = ref({
+			zh: '点击查看详情，滑动切换图片',
+			en: 'Tap to view, swipe to switch'
+		});
+
+		const noImagesText = ref({
+			zh: '暂无图片',
+			en: 'No images found in projects.'
+		});
+
 		// 获取移动端适配的描述文本
-		displayPageDescription() {
-			return this.isMobile ? this.pageDescriptionMobile : this.pageDescription;
-		},
+		const displayPageDescription = computed(() => {
+			return isMobile.value ? pageDescriptionMobile.value : pageDescription.value;
+		});
+
 		// 计算卡片样式
-		cardStyles() {
-			const quantity = this.galleryImages.length || 1;
-			return this.galleryImages.map((group, index) => {
-				const rotateY = (360 / quantity) * index + this.currentRotation;
+		const cardStyles = computed(() => {
+			const quantity = galleryImages.value.length || 1;
+			return galleryImages.value.map((group, index) => {
+				const rotateY = (360 / quantity) * index + currentRotation.value;
 				return {
 					'--index': index,
 					'--rotate-y': `${rotateY}deg`
 				};
 			});
-		},
+		});
+
 		// 计算inner样式
-		innerStyle() {
-			const quantity = this.galleryImages.length || 1;
+		const innerStyle = computed(() => {
+			const quantity = galleryImages.value.length || 1;
 			return {
 				'--quantity': quantity,
-				'transform': `perspective(1000px) rotateX(-2deg) rotateY(${-this.currentRotation}deg)`
+				'transform': `perspective(1000px) rotateX(-2deg) rotateY(${-currentRotation.value}deg)`
 			};
-		}
-	},
-	mounted() {
-		this.checkMobile();
-		this.loadData();
-		document.addEventListener('keydown', this.keyboardHandler);
-		this.startAutoRotation();
-		
-		// 鼠标/触摸事件
-		this.$refs.wrapper?.addEventListener('mousedown', this.handleMouseDown);
-		this.$refs.wrapper?.addEventListener('touchstart', this.handleTouchStart, { passive: false });
-		
-		// 窗口大小变化监听
-		window.addEventListener('resize', this.checkMobile);
-	},
-	beforeUnmount() {
-		if (this.loadTimeout) {
-			clearTimeout(this.loadTimeout);
-		}
-		this.stopAutoRotation();
-		document.removeEventListener('keydown', this.keyboardHandler);
-		window.removeEventListener('resize', this.checkMobile);
-		
-		this.$refs.wrapper?.removeEventListener('mousedown', this.handleMouseDown);
-		this.$refs.wrapper?.removeEventListener('touchstart', this.handleTouchStart);
-		document.removeEventListener('mousemove', this.handleMouseMove);
-		document.removeEventListener('mouseup', this.handleMouseUp);
-		document.removeEventListener('touchmove', this.handleTouchMove);
-		document.removeEventListener('touchend', this.handleTouchEnd);
-	},
-	methods: {
+		});
+
 		// 检测是否是移动端
-		checkMobile() {
-			this.isMobile = window.innerWidth < 768;
-		},
-		
-		async loadData() {
-			this.galleryImages = await apiService.getGallery();
-			console.log('Gallery.vue - Loaded gallery groups:', this.galleryImages);
-			this.checkAllImagesLoaded();
-			setTimeout(() => {
-				this.preloadAllImages();
-			}, 1000);
-		},
-		
+		const checkMobile = () => {
+			isMobile.value = window.innerWidth < 768;
+			console.log('Gallery: checkMobile, isMobile:', isMobile.value, 'width:', window.innerWidth);
+		};
+
 		// 获取图组的所有图片
-		getImageUrls(group) {
+		const getImageUrls = (group) => {
 			if (group.images && Array.isArray(group.images) && group.images.length > 0) {
 				return group.images;
 			}
 			return [group.url];
-		},
-		
+		};
+
 		// 获取图组的封面图片（优先 WebP）
-		getCoverImageUrl(group) {
-			const urls = this.getImageUrls(group);
+		const getCoverImageUrl = (group) => {
+			const urls = getImageUrls(group);
 			return convertToWebPUrl(urls[0] || '');
-		},
-		
+		};
+
 		// 获取图组的图片数量
-		getImageCount(group) {
-			return this.getImageUrls(group).length;
-		},
-		
-		checkAllImagesLoaded() {
-			this.galleryImages.forEach(group => {
-				const coverUrl = this.getCoverImageUrl(group);
+		const getImageCount = (group) => {
+			return getImageUrls(group).length;
+		};
+
+		// 检查是否图片已加载
+		const isGroupImageLoaded = (group) => {
+			return loadedImages.value.has(group.id);
+		};
+
+		// 检查是否图片正在加载
+		const isUrlLoading = (url) => {
+			return imageLoadingStates.value[url] === true;
+		};
+
+		const checkAllImagesLoaded = () => {
+			galleryImages.value.forEach(group => {
+				const coverUrl = getCoverImageUrl(group);
 				const image = new Image();
 				image.onload = () => {
-					this.loadedImages.add(group.id);
+					loadedImages.value.add(group.id);
 				};
 				image.onerror = () => {
 					console.warn('Failed to load gallery image:', coverUrl);
-					this.loadedImages.add(group.id);
+					loadedImages.value.add(group.id);
 				};
 				image.src = coverUrl;
 				if (image.complete) {
-					this.loadedImages.add(group.id);
+					loadedImages.value.add(group.id);
 				}
 			});
 			
 			// 设置超时保护，最多等待5秒
-			this.loadTimeout = setTimeout(() => {
-				this.galleryImages.forEach(group => {
-					if (!this.loadedImages.has(group.id)) {
-						console.warn('Gallery image load timeout, showing anyway:', this.getCoverImageUrl(group));
-						this.loadedImages.add(group.id);
+			loadTimeout.value = setTimeout(() => {
+				galleryImages.value.forEach(group => {
+					if (!loadedImages.value.has(group.id)) {
+						console.warn('Gallery image load timeout, showing anyway:', getCoverImageUrl(group));
+						loadedImages.value.add(group.id);
 					}
 				});
 			}, 5000);
-		},
+		};
 
-		preloadImage(url) {
-			if (this.preloadedImages.has(url)) {
+		const preloadImage = (url) => {
+			if (preloadedImages.value.has(url)) {
 				return Promise.resolve();
 			}
 			return new Promise((resolve) => {
-				this.imageLoadingStates[url] = true;
+				imageLoadingStates.value[url] = true;
 				const img = new Image();
 				img.onload = () => {
-					this.preloadedImages.add(url);
-					this.imageLoadingStates[url] = false;
+					preloadedImages.value.add(url);
+					imageLoadingStates.value[url] = false;
 					resolve();
 				};
 				img.onerror = () => {
 					console.warn('Failed to preload image:', url);
-					this.preloadedImages.add(url);
-					this.imageLoadingStates[url] = false;
+					preloadedImages.value.add(url);
+					imageLoadingStates.value[url] = false;
 					resolve();
 				};
 				img.src = url;
 				if (img.complete) {
-					this.preloadedImages.add(url);
-					this.imageLoadingStates[url] = false;
+					preloadedImages.value.add(url);
+					imageLoadingStates.value[url] = false;
 					resolve();
 				}
 			});
-		},
+		};
 
-		isImageLoading(url) {
-			return this.imageLoadingStates[url] === true;
-		},
+		const onModalImageLoad = () => {
+			const url = getModalImageUrl();
+			imageLoadingStates.value[url] = false;
+		};
 
-		onModalImageLoad() {
-			const url = this.getModalImageUrl();
-			this.imageLoadingStates[url] = false;
-		},
-
-		onModalImageError(event) {
-			const webpUrl = this.getModalImageUrl();
-			const originalUrl = this.getModalOriginalImageUrl();
+		const onModalImageError = (event) => {
+			const webpUrl = getModalImageUrl();
+			const originalUrl = getModalOriginalImageUrl();
 			
 			// 如果 WebP 加载失败，尝试加载原图
 			if (webpUrl !== originalUrl && event.target.src.endsWith('.webp')) {
 				console.log('WebP load failed, trying original:', originalUrl);
-				this.imageLoadingStates[webpUrl] = false;
+				imageLoadingStates.value[webpUrl] = false;
 				// 强制重新加载原始图片
 				event.target.src = originalUrl;
 			} else {
-				this.imageLoadingStates[originalUrl] = false;
+				imageLoadingStates.value[originalUrl] = false;
 			}
-		},
+		};
 
-		preloadAllImages() {
+		const preloadAllImages = () => {
 			const allUrls = [];
-			this.galleryImages.forEach(group => {
-				const urls = this.getImageUrls(group);
+			galleryImages.value.forEach(group => {
+				const urls = getImageUrls(group);
 				urls.forEach(url => allUrls.push(url));
 			});
 			
@@ -230,7 +201,7 @@ export default {
 				}
 				
 				const url = allUrls[index++];
-				this.preloadImage(url).then(() => {
+				preloadImage(url).then(() => {
 					loadNext();
 				});
 			};
@@ -238,269 +209,372 @@ export default {
 			for (let i = 0; i < concurrency; i++) {
 				loadNext();
 			}
-		},
+		};
 
-		preloadGroupImages(group) {
-			const urls = this.getImageUrls(group);
+		const preloadGroupImages = (group) => {
+			const urls = getImageUrls(group);
 			console.log('Preloading group images:', urls.length);
 			urls.forEach((url, index) => {
 				setTimeout(() => {
-					this.preloadImage(url);
+					preloadImage(url);
 				}, index * 100);
 			});
-		},
-		
-		isImageLoaded(group) {
-			return this.loadedImages.has(group.id);
-		},
-		
+		};
+
 		// 键盘处理
-		keyboardHandler(event) {
+		const keyboardHandler = (event) => {
 			if (event.key === 'Escape') {
-				if (this.isModalOpen) {
-					this.closeImageModal();
+				if (isModalOpen.value) {
+					closeImageModal();
 				}
-			} else if (event.key === ' ' && this.isModalOpen) {
+			} else if (event.key === ' ' && isModalOpen.value) {
 				event.preventDefault();
-				this.closeImageModal();
-			} else if (event.key === 'ArrowLeft' && !this.isModalOpen) {
-				this.rotateLeft();
-			} else if (event.key === 'ArrowRight' && !this.isModalOpen) {
-				this.rotateRight();
-			} else if (event.key === 'ArrowLeft' && this.isModalOpen) {
-				this.prevModalImage();
-			} else if (event.key === 'ArrowRight' && this.isModalOpen) {
-				this.nextModalImage();
-			} else if (event.key === ' ' && !this.isModalOpen) {
+				closeImageModal();
+			} else if (event.key === 'ArrowLeft' && !isModalOpen.value) {
+				rotateLeft();
+			} else if (event.key === 'ArrowRight' && !isModalOpen.value) {
+				rotateRight();
+			} else if (event.key === 'ArrowLeft' && isModalOpen.value) {
+				prevModalImage();
+			} else if (event.key === 'ArrowRight' && isModalOpen.value) {
+				nextModalImage();
+			} else if (event.key === ' ' && !isModalOpen.value) {
 				event.preventDefault();
-				const frontGroup = this.getFrontGroup();
+				const frontGroup = getFrontGroup();
 				if (frontGroup) {
-					this.handleGroupClick(frontGroup);
+					handleGroupClick(frontGroup);
 				}
 			}
-		},
-		
+		};
+
 		// 获取当前最前面的图组
-		getFrontGroup() {
-			if (this.galleryImages.length === 0) return null;
+		const getFrontGroup = () => {
+			if (galleryImages.value.length === 0) return null;
 			
-			const quantity = this.galleryImages.length;
+			const quantity = galleryImages.value.length;
 			const step = 360 / quantity;
 			
 			// 计算哪个卡片在最前面
 			// 我们需要找到满足 step * i ≈ currentRotation 的 i
-			let normalizedRotation = ((this.currentRotation % 360) + 360) % 360;
+			let normalizedRotation = ((currentRotation.value % 360) + 360) % 360;
 			
 			// 找到最接近的索引
 			let frontIndex = Math.round(normalizedRotation / step) % quantity;
 			if (frontIndex < 0) frontIndex += quantity;
 			
-			return this.galleryImages[frontIndex];
-		},
-		
+			return galleryImages.value[frontIndex];
+		};
+
 		// 向左旋转
-		rotateLeft() {
-			const quantity = this.galleryImages.length || 1;
-			this.currentRotation -= 360 / quantity;
-		},
-		
+		const rotateLeft = () => {
+			const quantity = galleryImages.value.length || 1;
+			currentRotation.value -= 360 / quantity;
+		};
+
 		// 向右旋转
-		rotateRight() {
-			const quantity = this.galleryImages.length || 1;
-			this.currentRotation += 360 / quantity;
-		},
-		
+		const rotateRight = () => {
+			const quantity = galleryImages.value.length || 1;
+			currentRotation.value += 360 / quantity;
+		};
+
 		// 开始自动旋转
-		startAutoRotation() {
-			this.autoRotateInterval = setInterval(() => {
-				if (this.isAutoRotating && !this.isDragging) {
-					this.rotateRight();
+		const startAutoRotation = () => {
+			autoRotateInterval = setInterval(() => {
+				if (isAutoRotating.value && !isDragging.value) {
+					rotateRight();
 				}
 			}, 6000);
-		},
-		
+		};
+
 		// 停止自动旋转
-		stopAutoRotation() {
-			if (this.autoRotateInterval) {
-				clearInterval(this.autoRotateInterval);
+		const stopAutoRotation = () => {
+			if (autoRotateInterval) {
+				clearInterval(autoRotateInterval);
 			}
-		},
-		
+		};
+
 		// 点击图组卡片 - 直接进入大图模式
-		handleGroupClick(group) {
-			this.selectedGroup = group;
-			this.selectedImageIndex = 0;
-			this.isModalOpen = true;
+		const handleGroupClick = (group) => {
+			selectedGroup.value = group;
+			selectedImageIndex.value = 0;
+			isModalOpen.value = true;
 			document.body.style.overflow = 'hidden';
-			this.isAutoRotating = false;
-			this.preloadGroupImages(group);
-		},
-		
+			isAutoRotating.value = false;
+			preloadGroupImages(group);
+		};
+
 		// 关闭图片查看模态框
-		closeImageModal() {
-			this.isModalOpen = false;
+		const closeImageModal = () => {
+			isModalOpen.value = false;
 			setTimeout(() => {
-				this.selectedImageIndex = 0;
+				selectedImageIndex.value = 0;
 				document.body.style.overflow = '';
-				this.isAutoRotating = true;
+				isAutoRotating.value = true;
 			}, 300);
-		},
-		
+		};
+
 		// 模态框中上一张图片
-		prevModalImage() {
-			if (!this.selectedGroup) return;
-			const urls = this.getImageUrls(this.selectedGroup);
-			if (this.selectedImageIndex > 0) {
-				this.selectedImageIndex--;
+		const prevModalImage = () => {
+			if (!selectedGroup.value) return;
+			const urls = getImageUrls(selectedGroup.value);
+			if (selectedImageIndex.value > 0) {
+				selectedImageIndex.value--;
 			} else {
-				this.selectedImageIndex = urls.length - 1;
+				selectedImageIndex.value = urls.length - 1;
 			}
 			// 设置加载状态
-			const webpUrl = this.getModalImageUrl();
-			const originalUrl = this.getModalOriginalImageUrl();
-			this.imageLoadingStates[webpUrl] = true;
-			this.imageLoadingStates[originalUrl] = true;
+			const webpUrl = getModalImageUrl();
+			const originalUrl = getModalOriginalImageUrl();
+			imageLoadingStates.value[webpUrl] = true;
+			imageLoadingStates.value[originalUrl] = true;
 			// 预加载当前图片
-			if (!this.preloadedImages.has(webpUrl)) {
-				this.preloadImage(webpUrl);
+			if (!preloadedImages.value.has(webpUrl)) {
+				preloadImage(webpUrl);
 			}
-		},
-		
+		};
+
 		// 模态框中下一张图片
-		nextModalImage() {
-			if (!this.selectedGroup) return;
-			const urls = this.getImageUrls(this.selectedGroup);
-			if (this.selectedImageIndex < urls.length - 1) {
-				this.selectedImageIndex++;
+		const nextModalImage = () => {
+			if (!selectedGroup.value) return;
+			const urls = getImageUrls(selectedGroup.value);
+			if (selectedImageIndex.value < urls.length - 1) {
+				selectedImageIndex.value++;
 			} else {
-				this.selectedImageIndex = 0;
+				selectedImageIndex.value = 0;
 			}
 			// 设置加载状态
-			const webpUrl = this.getModalImageUrl();
-			const originalUrl = this.getModalOriginalImageUrl();
-			this.imageLoadingStates[webpUrl] = true;
-			this.imageLoadingStates[originalUrl] = true;
+			const webpUrl = getModalImageUrl();
+			const originalUrl = getModalOriginalImageUrl();
+			imageLoadingStates.value[webpUrl] = true;
+			imageLoadingStates.value[originalUrl] = true;
 			// 预加载当前图片
-			if (!this.preloadedImages.has(webpUrl)) {
-				this.preloadImage(webpUrl);
+			if (!preloadedImages.value.has(webpUrl)) {
+				preloadImage(webpUrl);
 			}
-		},
-		
+		};
+
 		// 获取模态框当前显示的图片URL（优先 WebP）
-		getModalImageUrl() {
-			if (!this.selectedGroup) return '';
-			const urls = this.getImageUrls(this.selectedGroup);
-			return convertToWebPUrl(urls[this.selectedImageIndex] || urls[0]);
-		},
-		
+		const getModalImageUrl = () => {
+			if (!selectedGroup.value) return '';
+			const urls = getImageUrls(selectedGroup.value);
+			return convertToWebPUrl(urls[selectedImageIndex.value] || urls[0]);
+		};
+
 		// 获取原始图片URL（降级方案）
-		getModalOriginalImageUrl() {
-			if (!this.selectedGroup) return '';
-			const urls = this.getImageUrls(this.selectedGroup);
-			return urls[this.selectedImageIndex] || urls[0];
-		},
-		
+		const getModalOriginalImageUrl = () => {
+			if (!selectedGroup.value) return '';
+			const urls = getImageUrls(selectedGroup.value);
+			return urls[selectedImageIndex.value] || urls[0];
+		};
+
 		// 鼠标事件处理
-		handleMouseDown(event) {
-			this.isDragging = true;
-			this.isAutoRotating = false;
-			this.startX = event.clientX;
-			this.currentX = event.clientX;
-			this.startRotation = this.currentRotation;
+		const handleMouseDown = (event) => {
+			isDragging.value = true;
+			isAutoRotating.value = false;
+			startX.value = event.clientX;
+			currentX.value = event.clientX;
+			startRotation.value = currentRotation.value;
 			
-			document.addEventListener('mousemove', this.handleMouseMove);
-			document.addEventListener('mouseup', this.handleMouseUp);
-		},
-		
-		handleMouseMove(event) {
-			if (!this.isDragging) return;
-			this.currentX = event.clientX;
-			const diff = (this.currentX - this.startX) * 0.3;
-			this.currentRotation = this.startRotation + diff;
-		},
-		
-		handleMouseUp() {
-			if (!this.isDragging) return;
+			document.addEventListener('mousemove', handleMouseMove);
+			document.addEventListener('mouseup', handleMouseUp);
+		};
+
+		const handleMouseMove = (event) => {
+			if (!isDragging.value) return;
+			currentX.value = event.clientX;
+			const diff = (currentX.value - startX.value) * 0.3;
+			currentRotation.value = startRotation.value + diff;
+		};
+
+		const handleMouseUp = () => {
+			if (!isDragging.value) return;
 			
-			const quantity = this.galleryImages.length || 1;
+			const quantity = galleryImages.value.length || 1;
 			const step = 360 / quantity;
-			const normalizedRotation = ((this.currentRotation % 360) + 360) % 360;
+			const normalizedRotation = ((currentRotation.value % 360) + 360) % 360;
 			const nearestStep = Math.round(normalizedRotation / step) * step;
-			this.currentRotation = this.currentRotation - (normalizedRotation - nearestStep);
+			currentRotation.value = currentRotation.value - (normalizedRotation - nearestStep);
 			
-			this.isDragging = false;
-			this.isAutoRotating = true;
-			document.removeEventListener('mousemove', this.handleMouseMove);
-			document.removeEventListener('mouseup', this.handleMouseUp);
-		},
-		
+			isDragging.value = false;
+			isAutoRotating.value = true;
+			document.removeEventListener('mousemove', handleMouseMove);
+			document.removeEventListener('mouseup', handleMouseUp);
+		};
+
 		// 触摸事件处理
-		handleTouchStart(event) {
+		const handleTouchStart = (event) => {
 			event.preventDefault();
-			this.isDragging = true;
-			this.isAutoRotating = false;
-			this.startX = event.touches[0].clientX;
-			this.currentX = event.touches[0].clientX;
-			this.startRotation = this.currentRotation;
+			isDragging.value = true;
+			isAutoRotating.value = false;
+			startX.value = event.touches[0].clientX;
+			currentX.value = event.touches[0].clientX;
+			startRotation.value = currentRotation.value;
 			
-			document.addEventListener('touchmove', this.handleTouchMove, { passive: false });
-			document.addEventListener('touchend', this.handleTouchEnd);
-		},
-		
-		handleTouchMove(event) {
-			if (!this.isDragging) return;
+			document.addEventListener('touchmove', handleTouchMove, { passive: false });
+			document.addEventListener('touchend', handleTouchEnd);
+		};
+
+		const handleTouchMove = (event) => {
+			if (!isDragging.value) return;
 			event.preventDefault();
-			this.currentX = event.touches[0].clientX;
-			const diff = (this.currentX - this.startX) * 0.3;
-			this.currentRotation = this.startRotation + diff;
-		},
-		
-		handleTouchEnd() {
-			if (!this.isDragging) return;
+			currentX.value = event.touches[0].clientX;
+			const diff = (currentX.value - startX.value) * 0.3;
+			currentRotation.value = startRotation.value + diff;
+		};
+
+		const handleTouchEnd = () => {
+			if (!isDragging.value) return;
 			
-			const quantity = this.galleryImages.length || 1;
+			const quantity = galleryImages.value.length || 1;
 			const step = 360 / quantity;
-			const normalizedRotation = ((this.currentRotation % 360) + 360) % 360;
+			const normalizedRotation = ((currentRotation.value % 360) + 360) % 360;
 			const nearestStep = Math.round(normalizedRotation / step) * step;
-			this.currentRotation = this.currentRotation - (normalizedRotation - nearestStep);
+			currentRotation.value = currentRotation.value - (normalizedRotation - nearestStep);
 			
-			this.isDragging = false;
-			this.isAutoRotating = true;
-			document.removeEventListener('touchmove', this.handleTouchMove);
-			document.removeEventListener('touchend', this.handleTouchEnd);
-		},
-		
+			isDragging.value = false;
+			isAutoRotating.value = true;
+			document.removeEventListener('touchmove', handleTouchMove);
+			document.removeEventListener('touchend', handleTouchEnd);
+		};
+
 		// 模态框触摸开始
-		handleModalTouchStart(event) {
-			this.modalTouchStartX = event.touches[0].clientX;
-			this.modalTouchStartY = event.touches[0].clientY;
-		},
-		
+		const handleModalTouchStart = (event) => {
+			modalTouchStartX.value = event.touches[0].clientX;
+			modalTouchStartY.value = event.touches[0].clientY;
+		};
+
 		// 模态框触摸移动
-		handleModalTouchMove(event) {
+		const handleModalTouchMove = (event) => {
 			// 预留用于滑动动画效果
-		},
-		
+		};
+
 		// 模态框触摸结束
-		handleModalTouchEnd(event) {
+		const handleModalTouchEnd = (event) => {
 			const touchEndX = event.changedTouches[0].clientX;
 			const touchEndY = event.changedTouches[0].clientY;
 			
-			const deltaX = touchEndX - this.modalTouchStartX;
-			const deltaY = touchEndY - this.modalTouchStartY;
+			const deltaX = touchEndX - modalTouchStartX.value;
+			const deltaY = touchEndY - modalTouchStartY.value;
 			
 			// 判断是水平滑动还是垂直滑动
 			if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
 				// 水平滑动
 				if (deltaX > 0) {
 					// 向右滑动 - 上一张
-					this.prevModalImage();
+					prevModalImage();
 				} else {
 					// 向左滑动 - 下一张
-					this.nextModalImage();
+					nextModalImage();
 				}
 			}
-		}
+		};
+
+		// 加载数据
+		const loadData = async () => {
+			galleryImages.value = await apiService.getGallery();
+			console.log('Gallery.vue - Loaded gallery groups:', galleryImages.value);
+			checkAllImagesLoaded();
+			setTimeout(() => {
+				preloadAllImages();
+			}, 1000);
+		};
+
+		onMounted(() => {
+			checkMobile();
+			loadData();
+			document.addEventListener('keydown', keyboardHandler);
+			startAutoRotation();
+			
+			// 鼠标/触摸事件（桌面端）
+			nextTick(() => {
+				if (wrapper.value) {
+					wrapper.value.addEventListener('mousedown', handleMouseDown);
+					wrapper.value.addEventListener('touchstart', handleTouchStart, { passive: false });
+				}
+			});
+			
+			// 窗口大小变化监听
+			window.addEventListener('resize', checkMobile);
+		});
+
+		onBeforeUnmount(() => {
+			if (loadTimeout.value) {
+				clearTimeout(loadTimeout.value);
+			}
+			stopAutoRotation();
+			document.removeEventListener('keydown', keyboardHandler);
+			window.removeEventListener('resize', checkMobile);
+			
+			if (wrapper.value) {
+				wrapper.value.removeEventListener('mousedown', handleMouseDown);
+				wrapper.value.removeEventListener('touchstart', handleTouchStart);
+			}
+			document.removeEventListener('mousemove', handleMouseMove);
+			document.removeEventListener('mouseup', handleMouseUp);
+			document.removeEventListener('touchmove', handleTouchMove);
+			document.removeEventListener('touchend', handleTouchEnd);
+		});
+
+		return {
+			t,
+			galleryImages,
+			selectedGroup,
+			selectedImageIndex,
+			isModalOpen,
+			loadedImages,
+			preloadedImages,
+			imageLoadingStates,
+			currentRotation,
+			isDragging,
+			startX,
+			currentX,
+			startRotation,
+			isAutoRotating,
+			isMobile,
+			modalTouchStartX,
+			modalTouchStartY,
+			wrapper,
+			displayPageDescription,
+			cardStyles,
+			innerStyle,
+			pageDescription,
+			pageDescriptionMobile,
+			noImagesText,
+			checkMobile,
+			getImageUrls,
+			getCoverImageUrl,
+			getImageCount,
+			isGroupImageLoaded,
+			isUrlLoading,
+			checkAllImagesLoaded,
+			preloadImage,
+			onModalImageLoad,
+			onModalImageError,
+			preloadAllImages,
+			preloadGroupImages,
+			keyboardHandler,
+			getFrontGroup,
+			rotateLeft,
+			rotateRight,
+			startAutoRotation,
+			stopAutoRotation,
+			handleGroupClick,
+			closeImageModal,
+			prevModalImage,
+			nextModalImage,
+			getModalImageUrl,
+			getModalOriginalImageUrl,
+			handleMouseDown,
+			handleMouseMove,
+			handleMouseUp,
+			handleTouchStart,
+			handleTouchMove,
+			handleTouchEnd,
+			handleModalTouchStart,
+			handleModalTouchMove,
+			handleModalTouchEnd,
+			loadData
+		};
 	}
 };
 </script>
@@ -518,69 +592,73 @@ export default {
 			</div>
 
 			<!-- 桌面端：3D 旋转布局 -->
-			<div v-if="galleryImages.length > 0 && !isMobile" class="gallery-container">
-				<div class="wrapper" ref="wrapper">
-					<div 
-						class="inner" 
-						:style="innerStyle"
-						:class="{ 'no-animation': isDragging }"
-					>
+			<template v-if="galleryImages.length > 0">
+				<div v-if="!isMobile" class="gallery-container">
+					<div class="wrapper" ref="wrapper">
+						<div 
+							class="inner" 
+							:style="innerStyle"
+							:class="{ 'no-animation': isDragging }"
+						>
+							<div
+								v-for="(group, index) in galleryImages"
+								:key="group.id"
+								class="card"
+								:style="cardStyles[index]"
+								@click="handleGroupClick(group)"
+							>
+								<div class="img-container">
+									<div v-if="!isGroupImageLoaded(group)" class="gallery-image-skeleton">
+										<SkeletonLoader width="100%" height="100%" rounded="lg" />
+									</div>
+									<img
+										:src="getCoverImageUrl(group)"
+										:class="['img', isGroupImageLoaded(group) ? 'image-visible' : 'image-hidden']"
+										:alt="t(group.title)"
+									/>
+									<div class="image-count-badge">
+										{{ getImageCount(group) }} 张
+									</div>
+									<div class="card-content">
+										<p class="card-title">{{ t(group.title) }}</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- 移动端：平面网格布局 -->
+				<div v-else class="gallery-container-mobile">
+					<div class="gallery-grid">
 						<div
-							v-for="(group, index) in galleryImages"
+							v-for="group in galleryImages"
 							:key="group.id"
-							class="card"
-							:style="cardStyles[index]"
+							class="gallery-card-mobile"
 							@click="handleGroupClick(group)"
 						>
-							<div class="img-container">
-								<div v-if="!isImageLoaded(group)" class="gallery-image-skeleton">
-									<SkeletonLoader width="100%" height="100%" rounded="lg" />
+							<div class="img-wrapper-mobile">
+								<div class="img-container-mobile">
+									<div v-if="!isGroupImageLoaded(group)" class="gallery-image-skeleton-mobile">
+										<SkeletonLoader width="100%" height="100%" rounded="lg" />
+									</div>
+									<img
+										:src="getCoverImageUrl(group)"
+										:class="['img-mobile', isGroupImageLoaded(group) ? 'image-visible' : 'image-hidden']"
+										:alt="t(group.title)"
+									/>
+									<div class="image-count-badge-mobile">
+										{{ getImageCount(group) }} 张
+									</div>
 								</div>
-								<img
-									:src="getCoverImageUrl(group)"
-									:class="['img', isImageLoaded(group) ? 'image-visible' : 'image-hidden']"
-									:alt="t(group.title)"
-								/>
-								<div class="image-count-badge">
-									{{ getImageCount(group) }} 张
-								</div>
-								<div class="card-content">
-									<p class="card-title">{{ t(group.title) }}</p>
-								</div>
+							</div>
+							<div class="card-content-mobile">
+								<p class="card-title-mobile">{{ t(group.title) }}</p>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-
-			<!-- 移动端：平面网格布局 -->
-			<div v-if="galleryImages.length > 0 && isMobile" class="gallery-container-mobile">
-				<div class="gallery-grid">
-					<div
-						v-for="group in galleryImages"
-						:key="group.id"
-						class="gallery-card-mobile"
-						@click="handleGroupClick(group)"
-					>
-						<div class="img-container-mobile">
-							<div v-if="!isImageLoaded(group)" class="gallery-image-skeleton-mobile">
-								<SkeletonLoader width="100%" height="100%" rounded="lg" />
-							</div>
-							<img
-								:src="getCoverImageUrl(group)"
-								:class="['img-mobile', isImageLoaded(group) ? 'image-visible' : 'image-hidden']"
-								:alt="t(group.title)"
-							/>
-							<div class="image-count-badge-mobile">
-								{{ getImageCount(group) }} 张
-							</div>
-						</div>
-						<div class="card-content-mobile">
-							<p class="card-title-mobile">{{ t(group.title) }}</p>
-						</div>
-					</div>
-				</div>
-			</div>
+			</template>
 
 			<div v-else class="text-center py-20">
 				<p class="text-gray-500 dark:text-gray-400 text-lg">
@@ -628,7 +706,7 @@ export default {
 							
 							<div class="relative w-full h-auto max-h-[75vh] flex items-center justify-center">
 								<!-- 加载骨架屏 -->
-								<div v-if="isImageLoading(getModalImageUrl())" class="absolute inset-0 flex items-center justify-center">
+								<div v-if="isUrlLoading(getModalImageUrl())" class="absolute inset-0 flex items-center justify-center">
 									<SkeletonLoader width="100%" height="100%" rounded="lg" />
 								</div>
 								<!-- 图片（优先 WebP） -->
@@ -636,7 +714,7 @@ export default {
 									:key="selectedImageIndex"
 									:src="getModalImageUrl()" 
 									:alt="t(selectedGroup.title)"
-									:class="['w-full h-auto max-h-[75vh] object-contain modal-image transition-opacity duration-300', isImageLoading(getModalImageUrl()) ? 'opacity-0' : 'opacity-100']"
+									:class="['w-full h-auto max-h-[75vh] object-contain modal-image transition-opacity duration-300', isUrlLoading(getModalImageUrl()) ? 'opacity-0' : 'opacity-100']"
 									@click.stop
 									@load="onModalImageLoad"
 									@error="onModalImageError"
@@ -908,18 +986,28 @@ img.loading {
 }
 
 .gallery-card-mobile {
-	background: linear-gradient(135deg, 
-		rgba(100, 255, 218, 0.05) 0%, 
-		rgba(100, 255, 218, 0.02) 100%);
+	background: #ffffff;
 	border-radius: 16px;
 	overflow: hidden;
 	cursor: pointer;
 	transition: all 0.3s ease;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	display: flex;
+	flex-direction: column;
+}
+
+.dark .gallery-card-mobile {
+	background: #1f2937;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .gallery-card-mobile:active {
-	transform: scale(0.98);
+	transform: scale(0.97);
+}
+
+.img-wrapper-mobile {
+	width: 100%;
+	flex-shrink: 0;
 }
 
 .img-container-mobile {
@@ -956,28 +1044,37 @@ img.loading {
 	font-weight: 700;
 	backdrop-filter: blur(8px);
 	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	z-index: 10;
 }
 
 .card-content-mobile {
 	padding: 12px;
-	background: linear-gradient(
-		to top,
-		rgba(0, 0, 0, 0.7) 0%,
-		rgba(0, 0, 0, 0.4) 50%,
-		rgba(0, 0, 0, 0) 100%
-	);
+	background: #ffffff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	min-height: 44px;
+}
+
+.dark .card-content-mobile {
+	background: #1f2937;
 }
 
 .card-title-mobile {
 	font-size: 13px;
-	font-weight: 700;
-	color: #ffffff;
+	font-weight: 600;
+	color: #1f2937;
 	text-align: center;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	width: 100%;
-	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+	line-height: 1.4;
+}
+
+.dark .card-title-mobile {
+	color: #f3f4f6;
 }
 
 /* 模态框移动端优化 */
