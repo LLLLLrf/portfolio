@@ -28,9 +28,16 @@ export default {
 			startRotation: 0,
 			isAutoRotating: true,
 			loadTimeout: null,
+			isMobile: false,
+			modalTouchStartX: 0,
+			modalTouchStartY: 0,
 			pageDescription: {
 				zh: '使用 ← → 键切换，空格查看详情',
 				en: 'Use the ← → keys to switch, and space to view details'
+			},
+			pageDescriptionMobile: {
+				zh: '点击查看详情，滑动切换图片',
+				en: 'Tap to view, swipe to switch'
 			},
 			noImagesText: {
 				zh: '暂无图片',
@@ -39,6 +46,10 @@ export default {
 		};
 	},
 	computed: {
+		// 获取移动端适配的描述文本
+		displayPageDescription() {
+			return this.isMobile ? this.pageDescriptionMobile : this.pageDescription;
+		},
 		// 计算卡片样式
 		cardStyles() {
 			const quantity = this.galleryImages.length || 1;
@@ -60,6 +71,7 @@ export default {
 		}
 	},
 	mounted() {
+		this.checkMobile();
 		this.loadData();
 		document.addEventListener('keydown', this.keyboardHandler);
 		this.startAutoRotation();
@@ -67,6 +79,9 @@ export default {
 		// 鼠标/触摸事件
 		this.$refs.wrapper?.addEventListener('mousedown', this.handleMouseDown);
 		this.$refs.wrapper?.addEventListener('touchstart', this.handleTouchStart, { passive: false });
+		
+		// 窗口大小变化监听
+		window.addEventListener('resize', this.checkMobile);
 	},
 	beforeUnmount() {
 		if (this.loadTimeout) {
@@ -74,6 +89,7 @@ export default {
 		}
 		this.stopAutoRotation();
 		document.removeEventListener('keydown', this.keyboardHandler);
+		window.removeEventListener('resize', this.checkMobile);
 		
 		this.$refs.wrapper?.removeEventListener('mousedown', this.handleMouseDown);
 		this.$refs.wrapper?.removeEventListener('touchstart', this.handleTouchStart);
@@ -83,6 +99,11 @@ export default {
 		document.removeEventListener('touchend', this.handleTouchEnd);
 	},
 	methods: {
+		// 检测是否是移动端
+		checkMobile() {
+			this.isMobile = window.innerWidth < 768;
+		},
+		
 		async loadData() {
 			this.galleryImages = await apiService.getGallery();
 			console.log('Gallery.vue - Loaded gallery groups:', this.galleryImages);
@@ -447,6 +468,38 @@ export default {
 			this.isAutoRotating = true;
 			document.removeEventListener('touchmove', this.handleTouchMove);
 			document.removeEventListener('touchend', this.handleTouchEnd);
+		},
+		
+		// 模态框触摸开始
+		handleModalTouchStart(event) {
+			this.modalTouchStartX = event.touches[0].clientX;
+			this.modalTouchStartY = event.touches[0].clientY;
+		},
+		
+		// 模态框触摸移动
+		handleModalTouchMove(event) {
+			// 预留用于滑动动画效果
+		},
+		
+		// 模态框触摸结束
+		handleModalTouchEnd(event) {
+			const touchEndX = event.changedTouches[0].clientX;
+			const touchEndY = event.changedTouches[0].clientY;
+			
+			const deltaX = touchEndX - this.modalTouchStartX;
+			const deltaY = touchEndY - this.modalTouchStartY;
+			
+			// 判断是水平滑动还是垂直滑动
+			if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+				// 水平滑动
+				if (deltaX > 0) {
+					// 向右滑动 - 上一张
+					this.prevModalImage();
+				} else {
+					// 向左滑动 - 下一张
+					this.nextModalImage();
+				}
+			}
 		}
 	}
 };
@@ -460,11 +513,12 @@ export default {
 					Gallery
 				</h1>
 				<p class="text-gray-600 dark:text-gray-400 text-lg">
-					{{ t(pageDescription) }}
+					{{ t(displayPageDescription) }}
 				</p>
 			</div>
 
-			<div v-if="galleryImages.length > 0" class="gallery-container">
+			<!-- 桌面端：3D 旋转布局 -->
+			<div v-if="galleryImages.length > 0 && !isMobile" class="gallery-container">
 				<div class="wrapper" ref="wrapper">
 					<div 
 						class="inner" 
@@ -499,6 +553,35 @@ export default {
 				</div>
 			</div>
 
+			<!-- 移动端：平面网格布局 -->
+			<div v-if="galleryImages.length > 0 && isMobile" class="gallery-container-mobile">
+				<div class="gallery-grid">
+					<div
+						v-for="group in galleryImages"
+						:key="group.id"
+						class="gallery-card-mobile"
+						@click="handleGroupClick(group)"
+					>
+						<div class="img-container-mobile">
+							<div v-if="!isImageLoaded(group)" class="gallery-image-skeleton-mobile">
+								<SkeletonLoader width="100%" height="100%" rounded="lg" />
+							</div>
+							<img
+								:src="getCoverImageUrl(group)"
+								:class="['img-mobile', isImageLoaded(group) ? 'image-visible' : 'image-hidden']"
+								:alt="t(group.title)"
+							/>
+							<div class="image-count-badge-mobile">
+								{{ getImageCount(group) }} 张
+							</div>
+						</div>
+						<div class="card-content-mobile">
+							<p class="card-title-mobile">{{ t(group.title) }}</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
 			<div v-else class="text-center py-20">
 				<p class="text-gray-500 dark:text-gray-400 text-lg">
 					{{ t(noImagesText) }}
@@ -518,7 +601,12 @@ export default {
 					:class="isModalOpen ? 'modal-open' : 'modal-closed'"
 					@click.stop
 				>
-					<div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden max-w-5xl">
+					<div 
+						class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden max-w-5xl"
+						@touchstart="handleModalTouchStart"
+						@touchmove="handleModalTouchMove"
+						@touchend="handleModalTouchEnd"
+					>
 						<div class="relative">
 							<!-- 左右切换箭头 -->
 							<button 
@@ -807,6 +895,115 @@ img.loading {
 	opacity: 0.5;
 }
 
+/* 移动端网格布局 */
+.gallery-container-mobile {
+	padding: 20px 0;
+}
+
+.gallery-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 16px;
+	padding: 0 16px;
+}
+
+.gallery-card-mobile {
+	background: linear-gradient(135deg, 
+		rgba(100, 255, 218, 0.05) 0%, 
+		rgba(100, 255, 218, 0.02) 100%);
+	border-radius: 16px;
+	overflow: hidden;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.gallery-card-mobile:active {
+	transform: scale(0.98);
+}
+
+.img-container-mobile {
+	width: 100%;
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+	position: relative;
+	background: linear-gradient(135deg, 
+		rgba(100, 255, 218, 0.05) 0%, 
+		rgba(100, 255, 218, 0.02) 100%);
+}
+
+.gallery-image-skeleton-mobile {
+	width: 100%;
+	height: 100%;
+}
+
+.img-mobile {
+	width: 100%;
+	height: 100%;
+	display: block;
+	object-fit: cover;
+}
+
+.image-count-badge-mobile {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	background: rgba(0,0,0, 0.6);
+	color: white;
+	padding: 4px 10px;
+	border-radius: 20px;
+	font-size: 11px;
+	font-weight: 700;
+	backdrop-filter: blur(8px);
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.card-content-mobile {
+	padding: 12px;
+	background: linear-gradient(
+		to top,
+		rgba(0, 0, 0, 0.7) 0%,
+		rgba(0, 0, 0, 0.4) 50%,
+		rgba(0, 0, 0, 0) 100%
+	);
+}
+
+.card-title-mobile {
+	font-size: 13px;
+	font-weight: 700;
+	color: #ffffff;
+	text-align: center;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	width: 100%;
+	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* 模态框移动端优化 */
+@media (max-width: 768px) {
+	.modal-content {
+		width: 100%;
+		max-width: 100%;
+	}
+	
+	.modal-content .max-w-5xl {
+		max-width: 100%;
+	}
+	
+	/* 移动端模态框按钮隐藏左右箭头 */
+	@media (max-width: 640px) {
+		button[class*="absolute"] {
+			/* 在移动端保留按钮更小一些 */
+		}
+		
+		.modal-content .absolute.left-3,
+		.modal-content .absolute.right-3 {
+			transform: translateY(-50%) scale(0.9);
+		}
+	}
+}
+
 /* 响应式调整 */
 @media (max-width: 640px) {
 	.gallery-container {
@@ -831,6 +1028,20 @@ img.loading {
 		padding: 4px 10px;
 		top: 8px;
 		right: 8px;
+	}
+	
+	/* 移动端网格布局调整 */
+	.gallery-grid {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 12px;
+		padding: 0 12px;
+	}
+}
+
+/* 小屏幕手机 */
+@media (max-width: 400px) {
+	.gallery-grid {
+		grid-template-columns: 1fr;
 	}
 }
 </style>
