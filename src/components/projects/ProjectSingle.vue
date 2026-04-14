@@ -1,5 +1,6 @@
 <script>
 import { useLanguage } from '../../composables/useLanguage';
+import { convertToWebPUrl } from '@/composables/useImageOptimization';
 import SkeletonLoader from '@/components/shared/SkeletonLoader.vue';
 
 export default {
@@ -11,7 +12,9 @@ export default {
 	},
 	data() {
 		return {
-			isImageLoaded: false
+			isImageLoaded: false,
+			currentImageSrc: '',
+			useFallback: false
 		};
 	},
 	mounted() {
@@ -21,7 +24,7 @@ export default {
 		// 设置超时保护，最多等待5秒
 		this.loadTimeout = setTimeout(() => {
 			if (!this.isImageLoaded) {
-				console.warn('Image load timeout, showing image anyway:', this.project.thumbnail);
+				console.warn('Image load timeout, showing image anyway:', this.currentImageSrc || this.project.thumbnail);
 				this.isImageLoaded = true;
 				sessionStorage.setItem(`project_image_${this.project.id}`, 'true');
 			}
@@ -43,6 +46,9 @@ export default {
 			});
 		},
 		checkImageLoaded() {
+			const webpUrl = convertToWebPUrl(this.project.thumbnail);
+			this.currentImageSrc = webpUrl;
+			
 			const img = new Image();
 			
 			// 设置加载成功和失败的回调
@@ -52,13 +58,37 @@ export default {
 			};
 			
 			img.onerror = () => {
-				console.warn('Failed to load image:', this.project.thumbnail);
-				this.isImageLoaded = true;
-				sessionStorage.setItem(`project_image_${this.project.id}`, 'true');
+				// 如果 WebP 加载失败，尝试原始图片
+				if (webpUrl !== this.project.thumbnail) {
+					console.log('WebP load failed, trying original:', this.project.thumbnail);
+					this.useFallback = true;
+					this.currentImageSrc = this.project.thumbnail;
+					
+					const imgFallback = new Image();
+					imgFallback.onload = () => {
+						this.isImageLoaded = true;
+						sessionStorage.setItem(`project_image_${this.project.id}`, 'true');
+					};
+					imgFallback.onerror = () => {
+						console.warn('Failed to load image (both WebP and original):', this.project.thumbnail);
+						this.isImageLoaded = true;
+						sessionStorage.setItem(`project_image_${this.project.id}`, 'true');
+					};
+					imgFallback.src = this.project.thumbnail;
+					
+					if (imgFallback.complete) {
+						this.isImageLoaded = true;
+						sessionStorage.setItem(`project_image_${this.project.id}`, 'true');
+					}
+				} else {
+					console.warn('Failed to load image:', this.project.thumbnail);
+					this.isImageLoaded = true;
+					sessionStorage.setItem(`project_image_${this.project.id}`, 'true');
+				}
 			};
 			
 			// 开始加载图片
-			img.src = this.project.thumbnail;
+			img.src = webpUrl;
 			
 			// 如果图片已经在缓存中，直接设置为已加载
 			if (img.complete) {
@@ -71,8 +101,14 @@ export default {
 			sessionStorage.setItem(`project_image_${this.project.id}`, 'true');
 		},
 		onImageError() {
-			this.isImageLoaded = true;
-			sessionStorage.setItem(`project_image_${this.project.id}`, 'true');
+			// 如果 WebP 失败且还没回退，尝试回退
+			if (!this.useFallback && this.currentImageSrc !== this.project.thumbnail) {
+				this.useFallback = true;
+				this.currentImageSrc = this.project.thumbnail;
+			} else {
+				this.isImageLoaded = true;
+				sessionStorage.setItem(`project_image_${this.project.id}`, 'true');
+			}
 		}
 	}
 };
@@ -104,7 +140,8 @@ export default {
 			<!-- Image -->
 			<img
 				v-show="isImageLoaded"
-				:src="project.thumbnail"
+				:key="useFallback ? 'fallback' : 'webp'"
+				:src="currentImageSrc"
 				:alt="t(project.title)"
 				@load="onImageLoad"
 				@error="onImageError"

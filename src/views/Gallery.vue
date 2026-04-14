@@ -1,11 +1,13 @@
 <script>
 import { apiService } from '@/services/apiService';
 import { useLanguage } from '@/composables/useLanguage';
+import { convertToWebPUrl } from '@/composables/useImageOptimization';
 import SkeletonLoader from '@/components/shared/SkeletonLoader.vue';
+import WebpImage from '@/components/shared/WebpImage.vue';
 
 export default {
 	name: 'Gallery',
-	components: { SkeletonLoader },
+	components: { SkeletonLoader, WebpImage },
 	setup() {
 		const { t } = useLanguage();
 		return { t };
@@ -18,6 +20,7 @@ export default {
 			isModalOpen: false,
 			loadedImages: new Set(),
 			preloadedImages: new Set(),
+			imageLoadingStates: {},
 			currentRotation: 0,
 			isDragging: false,
 			startX: 0,
@@ -97,10 +100,10 @@ export default {
 			return [group.url];
 		},
 		
-		// 获取图组的封面图片
+		// 获取图组的封面图片（优先 WebP）
 		getCoverImageUrl(group) {
 			const urls = this.getImageUrls(group);
-			return urls[0] || '';
+			return convertToWebPUrl(urls[0] || '');
 		},
 		
 		// 获取图组的图片数量
@@ -141,22 +144,50 @@ export default {
 				return Promise.resolve();
 			}
 			return new Promise((resolve) => {
+				this.imageLoadingStates[url] = true;
 				const img = new Image();
 				img.onload = () => {
 					this.preloadedImages.add(url);
+					this.imageLoadingStates[url] = false;
 					resolve();
 				};
 				img.onerror = () => {
 					console.warn('Failed to preload image:', url);
 					this.preloadedImages.add(url);
+					this.imageLoadingStates[url] = false;
 					resolve();
 				};
 				img.src = url;
 				if (img.complete) {
 					this.preloadedImages.add(url);
+					this.imageLoadingStates[url] = false;
 					resolve();
 				}
 			});
+		},
+
+		isImageLoading(url) {
+			return this.imageLoadingStates[url] === true;
+		},
+
+		onModalImageLoad() {
+			const url = this.getModalImageUrl();
+			this.imageLoadingStates[url] = false;
+		},
+
+		onModalImageError(event) {
+			const webpUrl = this.getModalImageUrl();
+			const originalUrl = this.getModalOriginalImageUrl();
+			
+			// 如果 WebP 加载失败，尝试加载原图
+			if (webpUrl !== originalUrl && event.target.src.endsWith('.webp')) {
+				console.log('WebP load failed, trying original:', originalUrl);
+				this.imageLoadingStates[webpUrl] = false;
+				// 强制重新加载原始图片
+				event.target.src = originalUrl;
+			} else {
+				this.imageLoadingStates[originalUrl] = false;
+			}
 		},
 
 		preloadAllImages() {
@@ -303,6 +334,15 @@ export default {
 			} else {
 				this.selectedImageIndex = urls.length - 1;
 			}
+			// 设置加载状态
+			const webpUrl = this.getModalImageUrl();
+			const originalUrl = this.getModalOriginalImageUrl();
+			this.imageLoadingStates[webpUrl] = true;
+			this.imageLoadingStates[originalUrl] = true;
+			// 预加载当前图片
+			if (!this.preloadedImages.has(webpUrl)) {
+				this.preloadImage(webpUrl);
+			}
 		},
 		
 		// 模态框中下一张图片
@@ -314,10 +354,26 @@ export default {
 			} else {
 				this.selectedImageIndex = 0;
 			}
+			// 设置加载状态
+			const webpUrl = this.getModalImageUrl();
+			const originalUrl = this.getModalOriginalImageUrl();
+			this.imageLoadingStates[webpUrl] = true;
+			this.imageLoadingStates[originalUrl] = true;
+			// 预加载当前图片
+			if (!this.preloadedImages.has(webpUrl)) {
+				this.preloadImage(webpUrl);
+			}
 		},
 		
-		// 获取模态框当前显示的图片URL
+		// 获取模态框当前显示的图片URL（优先 WebP）
 		getModalImageUrl() {
+			if (!this.selectedGroup) return '';
+			const urls = this.getImageUrls(this.selectedGroup);
+			return convertToWebPUrl(urls[this.selectedImageIndex] || urls[0]);
+		},
+		
+		// 获取原始图片URL（降级方案）
+		getModalOriginalImageUrl() {
 			if (!this.selectedGroup) return '';
 			const urls = this.getImageUrls(this.selectedGroup);
 			return urls[this.selectedImageIndex] || urls[0];
@@ -482,12 +538,22 @@ export default {
 								</svg>
 							</button>
 							
-							<img 
-								:src="getModalImageUrl()" 
-								:alt="t(selectedGroup.title)"
-								class="w-full h-auto max-h-[75vh] object-contain modal-image"
-								@click.stop
-							/>
+							<div class="relative w-full h-auto max-h-[75vh] flex items-center justify-center">
+								<!-- 加载骨架屏 -->
+								<div v-if="isImageLoading(getModalImageUrl())" class="absolute inset-0 flex items-center justify-center">
+									<SkeletonLoader width="100%" height="100%" rounded="lg" />
+								</div>
+								<!-- 图片（优先 WebP） -->
+								<img 
+									:key="selectedImageIndex"
+									:src="getModalImageUrl()" 
+									:alt="t(selectedGroup.title)"
+									:class="['w-full h-auto max-h-[75vh] object-contain modal-image transition-opacity duration-300', isImageLoading(getModalImageUrl()) ? 'opacity-0' : 'opacity-100']"
+									@click.stop
+									@load="onModalImageLoad"
+									@error="onModalImageError"
+								/>
+							</div>
 							
 							<!-- 图片数量指示器 -->
 							<div class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium">
@@ -730,8 +796,8 @@ export default {
 }
 
 .modal-image {
-	transition: all 0.3s ease;
-}
+			transition: all 0.3s ease-in-out;
+		}
 
 img {
 	transition: opacity 0.3s ease-in-out;

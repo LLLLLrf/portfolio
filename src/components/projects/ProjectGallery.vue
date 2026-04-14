@@ -1,5 +1,6 @@
 <script>
 import SkeletonLoader from '@/components/shared/SkeletonLoader.vue';
+import { convertToWebPUrl } from '@/composables/useImageOptimization';
 
 export default {
 	components: { SkeletonLoader },
@@ -11,12 +12,26 @@ export default {
 			showLeftArrow: false,
 			showRightArrow: false,
 			scrollContainer: null,
-			loadedImages: new Set()
+			loadedImages: new Set(),
+			imageSources: {} // 存储每个图片的当前使用源 (id -> { webpUrl, originalUrl, useFallback }
 		};
 	},
 	methods: {
+		getImageSource(img) {
+			if (!this.imageSources[img.id]) {
+				const webpUrl = convertToWebPUrl(img.img);
+				this.imageSources[img.id] = {
+					webpUrl,
+					originalUrl: img.img,
+					useFallback: false,
+					currentUrl: webpUrl
+				};
+			}
+			return this.imageSources[img.id].currentUrl;
+		},
 		checkAllImagesLoaded() {
 			this.projectImages.forEach(img => {
+				const source = this.getImageSource(img);
 				const image = new Image();
 				
 				// 设置加载成功和失败的回调
@@ -25,12 +40,33 @@ export default {
 				};
 				
 				image.onerror = () => {
-					console.warn('Failed to load gallery image:', img.img);
-					this.loadedImages.add(img.id);
+					const imgSource = this.imageSources[img.id];
+					if (!imgSource.useFallback && imgSource.webpUrl !== imgSource.originalUrl) {
+						// 尝试加载原图
+						imgSource.useFallback = true;
+						imgSource.currentUrl = imgSource.originalUrl;
+						
+						const imgFallback = new Image();
+						imgFallback.onload = () => {
+							this.loadedImages.add(img.id);
+						};
+						imgFallback.onerror = () => {
+							console.warn('Failed to load gallery image (both WebP and original):', img.img);
+							this.loadedImages.add(img.id);
+						};
+						imgFallback.src = imgSource.originalUrl;
+						
+						if (imgFallback.complete) {
+							this.loadedImages.add(img.id);
+						}
+					} else {
+						console.warn('Failed to load gallery image:', img.img);
+						this.loadedImages.add(img.id);
+					}
 				};
 				
 				// 开始加载图片
-				image.src = img.img;
+				image.src = source;
 				
 				// 如果图片已经在缓存中，直接设置为已加载
 				if (image.complete) {
@@ -52,6 +88,16 @@ export default {
 			this.loadedImages.add(imageId);
 		},
 		onImageError(imageId) {
+			const img = this.projectImages.find(i => i.id === imageId);
+			if (img && this.imageSources[imageId]) {
+				const imgSource = this.imageSources[imageId];
+				if (!imgSource.useFallback && imgSource.webpUrl !== imgSource.originalUrl) {
+					// 切换到原图
+					imgSource.useFallback = true;
+					imgSource.currentUrl = imgSource.originalUrl;
+					return; // 不标记为已加载，让新的 img 标签处理
+				}
+			}
 			this.loadedImages.add(imageId);
 		},
 		isImageLoaded(imageId) {
@@ -191,7 +237,8 @@ export default {
 							<!-- Image -->
 							<img
 								v-show="isImageLoaded(projectImage.id)"
-								:src="projectImage.img"
+								:key="imageSources[projectImage.id]?.useFallback ? 'fallback' : 'webp'"
+								:src="getImageSource(projectImage)"
 								class="w-full h-64 sm:h-72 object-cover rounded-t-xl gallery-image fade-in"
 								:alt="projectImage.title"
 								loading="lazy"
@@ -261,7 +308,8 @@ export default {
 						
 						<img 
 							v-show="isImageLoaded(selectedImage.id)"
-							:src="selectedImage.img" 
+							:key="imageSources[selectedImage.id]?.useFallback ? 'fallback' : 'webp'"
+							:src="getImageSource(selectedImage)" 
 							:alt="selectedImage.title"
 							class="w-full h-auto max-h-[75vh] object-contain modal-image fade-in"
 							@click.stop

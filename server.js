@@ -3,6 +3,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const sharp = require('sharp');
 
 const PASSWORD_FILE = path.join(__dirname, 'data', 'password.json');
 
@@ -24,6 +25,41 @@ if (!fs.existsSync(DATA_DIR)) {
 
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+
+// 图片转换配置
+const IMAGE_CONFIG = {
+  maxWidth: 1200,
+  webpQuality: 80,
+  allowedFormats: ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
+  formatsToConvert: ['.jpg', '.jpeg', '.png']
+};
+
+// 转换图片为 WebP 格式
+async function convertImageToWebP(inputPath, outputPath) {
+  try {
+    await sharp(inputPath)
+      .resize({ width: IMAGE_CONFIG.maxWidth, withoutEnlargement: true })
+      .webp({ quality: IMAGE_CONFIG.webpQuality })
+      .toFile(outputPath);
+    return true;
+  } catch (error) {
+    console.error('Error converting image to WebP:', error);
+    return false;
+  }
+}
+
+// 检查浏览器是否支持 WebP（用于服务器端判断）
+function isWebPSupported(userAgent) {
+  if (!userAgent) return false;
+  const ua = userAgent.toLowerCase();
+  // Chrome 9+, Firefox 65+, Safari 14+, Edge 18+ 支持 WebP
+  return (
+    ua.includes('chrome') && !ua.includes('edge') || // Chrome (不含旧版Edge)
+    ua.includes('firefox') ||
+    ua.includes('safari') && !ua.includes('chrome') && !ua.includes('edg') || // Safari
+    ua.includes('edg') // 新版Edge
+  );
 }
 
 const defaultProjects = [
@@ -599,7 +635,7 @@ app.get('/api/resumes', (req, res) => {
   res.json(config);
 });
 
-app.post('/api/upload/image', imageUpload.single('image'), (req, res) => {
+app.post('/api/upload/image', imageUpload.single('image'), async (req, res) => {
   if (!API_ENABLED) {
     return res.status(403).json({ error: 'API disabled' });
   }
@@ -607,11 +643,39 @@ app.post('/api/upload/image', imageUpload.single('image'), (req, res) => {
     return res.status(400).json({ error: 'No file uploaded' });
   }
   
-  const imageUrl = `/uploads/${req.file.filename}`;
+  const originalFilename = req.file.filename;
+  const originalPath = req.file.path;
+  const ext = path.extname(originalFilename).toLowerCase();
+  const baseName = path.basename(originalFilename, ext);
+  
+  let finalUrl = `/uploads/${originalFilename}`;
+  let webpFilename = null;
+  
+  // 检查是否需要转换为 WebP
+  if (IMAGE_CONFIG.formatsToConvert.includes(ext)) {
+    webpFilename = `${baseName}.webp`;
+    const webpPath = path.join(UPLOAD_DIR, webpFilename);
+    
+    // 尝试转换图片
+    const convertSuccess = await convertImageToWebP(originalPath, webpPath);
+    
+    if (convertSuccess) {
+      finalUrl = `/uploads/${webpFilename}`;
+      console.log(`Image converted to WebP: ${webpFilename}`);
+      
+      // 保留原始文件作为降级方案，不删除
+      // 如果想节省空间，可以选择删除原始文件
+    } else {
+      console.warn('WebP conversion failed, using original image');
+    }
+  }
+  
   res.json({
     success: true,
-    url: imageUrl,
-    filename: req.file.filename
+    url: finalUrl,
+    filename: webpFilename || originalFilename,
+    originalUrl: `/uploads/${originalFilename}`,
+    originalFilename: originalFilename
   });
 });
 
@@ -625,13 +689,30 @@ app.delete('/api/upload/image', (req, res) => {
     return res.status(400).json({ error: 'Filename required' });
   }
   
+  // 删除主文件
   const filePath = path.join(UPLOAD_DIR, filename);
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
-    res.json({ success: true });
-  } else {
-    res.status(404).json({ error: 'File not found' });
   }
+  
+  // 尝试删除对应的 WebP 或原始文件（双重删除以确保清理）
+  const baseName = path.basename(filename, path.extname(filename));
+  const possibleFiles = [
+    `${baseName}.webp`,
+    `${baseName}.jpg`,
+    `${baseName}.jpeg`,
+    `${baseName}.png`
+  ];
+  
+  possibleFiles.forEach(file => {
+    const possiblePath = path.join(UPLOAD_DIR, file);
+    if (fs.existsSync(possiblePath) && file !== filename) {
+      fs.unlinkSync(possiblePath);
+      console.log(`Deleted related file: ${file}`);
+    }
+  });
+  
+  res.json({ success: true });
 });
 
 app.post('/api/resumes/upload', cvUpload.single('resume'), (req, res) => {
@@ -873,6 +954,33 @@ app.delete('/api/gallery/:id', (req, res) => {
     const filePath = path.join(UPLOAD_DIR, fileName);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
+    }
+    
+    // 删除相关的其他格式文件（如原始格式或 WebP 格式）
+    const baseName = path.basename(fileName, path.extname(fileName));
+    const possibleFiles = [
+      `${baseName}.webp`,
+      `${baseName}.jpg`,
+      `${baseName}.jpeg`,
+      `${baseName}.png`
+    ];
+    
+    possibleFiles.forEach(file => {
+      const possiblePath = path.join(UPLOAD_DIR, file);
+      if (fs.existsSync(possiblePath) && file !== fileName) {
+        fs.unlinkSync(possiblePath);
+        console.log(`Deleted related gallery file: ${file}`);
+      }
+    });
+    
+    // 同时检查是否有 originalUrl 并删除对应的原始文件
+    if (imageToDelete.originalUrl) {
+      const originalFileName = imageToDelete.originalUrl.replace('/uploads/', '');
+      const originalFilePath = path.join(UPLOAD_DIR, originalFileName);
+      if (fs.existsSync(originalFilePath)) {
+        fs.unlinkSync(originalFilePath);
+        console.log(`Deleted original gallery file: ${originalFileName}`);
+      }
     }
   }
   
