@@ -1,6 +1,8 @@
 # 个人作品集网站
 
-一个基于 Vue.js 3 和 TailwindCSS 构建的现代化个人作品集网站，支持暗黑模式、多语言切换和功能强大的管理后台。
+一个基于 Vue.js 3 和 TailwindCSS 构建的现代化个人作品集网站，支持零代码编辑、深浅色模式、多语言切换和功能强大的管理后台。
+
+[效果预览：liaoruofan.xyz](https://liaoruofan.xyz)
 
 ## 项目特性
 
