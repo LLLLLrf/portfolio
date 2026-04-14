@@ -17,6 +17,7 @@ export default {
 			selectedImageIndex: 0,
 			isModalOpen: false,
 			loadedImages: new Set(),
+			preloadedImages: new Set(),
 			currentRotation: 0,
 			isDragging: false,
 			startX: 0,
@@ -83,6 +84,9 @@ export default {
 			this.galleryImages = await apiService.getGallery();
 			console.log('Gallery.vue - Loaded gallery groups:', this.galleryImages);
 			this.checkAllImagesLoaded();
+			setTimeout(() => {
+				this.preloadAllImages();
+			}, 1000);
 		},
 		
 		// 获取图组的所有图片
@@ -130,6 +134,68 @@ export default {
 					}
 				});
 			}, 5000);
+		},
+
+		preloadImage(url) {
+			if (this.preloadedImages.has(url)) {
+				return Promise.resolve();
+			}
+			return new Promise((resolve) => {
+				const img = new Image();
+				img.onload = () => {
+					this.preloadedImages.add(url);
+					resolve();
+				};
+				img.onerror = () => {
+					console.warn('Failed to preload image:', url);
+					this.preloadedImages.add(url);
+					resolve();
+				};
+				img.src = url;
+				if (img.complete) {
+					this.preloadedImages.add(url);
+					resolve();
+				}
+			});
+		},
+
+		preloadAllImages() {
+			const allUrls = [];
+			this.galleryImages.forEach(group => {
+				const urls = this.getImageUrls(group);
+				urls.forEach(url => allUrls.push(url));
+			});
+			
+			console.log('Starting to preload', allUrls.length, 'images...');
+			
+			const concurrency = 3;
+			let index = 0;
+			
+			const loadNext = () => {
+				if (index >= allUrls.length) {
+					console.log('All images preloaded!');
+					return;
+				}
+				
+				const url = allUrls[index++];
+				this.preloadImage(url).then(() => {
+					loadNext();
+				});
+			};
+			
+			for (let i = 0; i < concurrency; i++) {
+				loadNext();
+			}
+		},
+
+		preloadGroupImages(group) {
+			const urls = this.getImageUrls(group);
+			console.log('Preloading group images:', urls.length);
+			urls.forEach((url, index) => {
+				setTimeout(() => {
+					this.preloadImage(url);
+				}, index * 100);
+			});
 		},
 		
 		isImageLoaded(group) {
@@ -215,6 +281,7 @@ export default {
 			this.isModalOpen = true;
 			document.body.style.overflow = 'hidden';
 			this.isAutoRotating = false;
+			this.preloadGroupImages(group);
 		},
 		
 		// 关闭图片查看模态框
