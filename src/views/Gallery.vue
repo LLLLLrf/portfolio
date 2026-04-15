@@ -594,6 +594,18 @@ export default {
 			<!-- 桌面端：3D 旋转布局 -->
 			<template v-if="galleryImages.length > 0">
 				<div v-if="!isMobile" class="gallery-container">
+					<!-- 左翻页按钮 -->
+					<button 
+						class="gallery-nav-btn gallery-nav-btn-left"
+						@click="rotateLeft"
+						@mouseenter="isAutoRotating = false"
+						@mouseleave="isAutoRotating = true"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+						</svg>
+					</button>
+					
 					<div class="wrapper" ref="wrapper">
 						<div 
 							class="inner" 
@@ -626,6 +638,18 @@ export default {
 							</div>
 						</div>
 					</div>
+					
+					<!-- 右翻页按钮 -->
+					<button 
+						class="gallery-nav-btn gallery-nav-btn-right"
+						@click="rotateRight"
+						@mouseenter="isAutoRotating = false"
+						@mouseleave="isAutoRotating = true"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+						</svg>
+					</button>
 				</div>
 
 				<!-- 移动端：平面网格布局 -->
@@ -758,11 +782,12 @@ export default {
 
 .gallery-container {
 	height: calc(100vh - 200px);
-	margin-top: -50px;
+	margin-top: 0px;
 	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	padding: 0 60px;
 }
 
 .wrapper {
@@ -777,13 +802,13 @@ export default {
 }
 
 .inner {
-	--w: 280px;
+	--w: 270px;
 	--translateZ: 500px;
 	--rotateX: -15deg;
 	--perspective: 1000px;
 	position: absolute;
 	width: var(--w);
-	top: 10%;
+	top: 10px;
 	left: calc(50% - (var(--w) / 2) - 2.5px);
 	z-index: 2;
 	transform-style: preserve-3d;
@@ -919,6 +944,51 @@ export default {
 	margin-bottom: -6px;
 	line-height: 1.2;
 	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* 左右翻页按钮 */
+.gallery-nav-btn {
+	position: absolute;
+	top: 32%;
+	transform: translateY(-50%);
+	z-index: 100;
+	width: 52px;
+	height: 52px;
+	background: transparent;
+	border: none;
+	box-shadow: none;
+	color: #6b7280;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	padding: 0;
+}
+
+.dark .gallery-nav-btn {
+	color: #9ca3af;
+}
+
+.gallery-nav-btn:hover {
+	transform: translateY(-50%) scale(1.2);
+	color: #0891b2;
+}
+
+.dark .gallery-nav-btn:hover {
+	color: #22d3ee;
+}
+
+.gallery-nav-btn:active {
+	transform: translateY(-50%) scale(0.9);
+}
+
+.gallery-nav-btn-left {
+	left: -55px;
+}
+
+.gallery-nav-btn-right {
+	right: -55px;
 }
 
 .modal-overlay {
