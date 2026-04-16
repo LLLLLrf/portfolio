@@ -68,7 +68,7 @@ export default {
 			const quantity = galleryImages.value.length || 1;
 			return {
 				'--quantity': quantity,
-				'transform': `perspective(1000px) rotateX(-2deg) rotateY(${-currentRotation.value}deg)`
+				'transform': `perspective(1000px) rotateX(5deg) rotateY(${-currentRotation.value}deg)`
 			};
 		});
 
@@ -781,13 +781,13 @@ export default {
 }
 
 .gallery-container {
-	height: calc(100vh - 200px);
-	margin-top: 0px;
+	height: calc(100vh - 350px);
+	margin-top: -6%;
 	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 0 60px;
+	padding: 0px 60px;
 }
 
 .wrapper {
@@ -802,13 +802,13 @@ export default {
 }
 
 .inner {
-	--w: 270px;
-	--translateZ: 500px;
+	--w: 600px;
+	--translateZ: 1000px;
 	--rotateX: -15deg;
 	--perspective: 1000px;
 	position: absolute;
 	width: var(--w);
-	top: 10px;
+	top: -46px;
 	left: calc(50% - (var(--w) / 2) - 2.5px);
 	z-index: 2;
 	transform-style: preserve-3d;
@@ -824,24 +824,26 @@ export default {
 	/* border: 2px solid rgba(100, 255, 218, 0.3); */
 	border-radius: 16px;
 	overflow: hidden;
-	width: 98%;
+	width: 96%;
 	height: auto;
 	top: 0;
 	left: 0;
 	transform: rotateY(calc((360deg / var(--quantity)) * var(--index)))
-		translateZ(var(--translateZ));
+		translateZ(var(--translateZ))
+		scale(0.37);
 	background: linear-gradient(135deg, 
 		rgba(100, 255, 218, 0.05) 0%, 
 		rgba(100, 255, 218, 0.02) 100%);
 	cursor: pointer;
 	transition: all 0.3s ease;
 	backface-visibility: visible;
+	/* transform-origin: center center; */
 }
 
 .card:hover {
 	transform: rotateY(calc((360deg / var(--quantity)) * var(--index)))
 		translateZ(calc(var(--translateZ) + 30px))
-		scale(1.03);
+		scale(0.4);
 	box-shadow: 0 20px 60px rgba(100, 255, 218, 0.2);
 	/* border-color: rgba(100, 255, 218, 0.6); */
 }
@@ -917,14 +919,14 @@ export default {
 
 .image-count-badge {
 	position: absolute;
-	top: 12px;
-	right: 12px;
-	width: 30px;
+	top: 24px;
+	right: 24px;
+	width: 88px;
 	background: rgba(0,0,0, 0.15);
 	color: white;
 	padding: 4px 4px;
 	border-radius: 20px;
-	font-size: 8px;
+	font-size: 22px;
 	font-weight: 700;
 	backdrop-filter: blur(8px);
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.0);
@@ -933,7 +935,7 @@ export default {
 }
 
 .card-title {
-	font-size: 10px;
+	font-size: 24px;
 	font-weight: 700;
 	color: #ffffff;
 	text-align: center;
@@ -949,11 +951,11 @@ export default {
 /* 左右翻页按钮 */
 .gallery-nav-btn {
 	position: absolute;
-	top: 32%;
+	top: calc(35% + 100px);
 	transform: translateY(-50%);
 	z-index: 100;
-	width: 52px;
-	height: 52px;
+	width: 55px;
+	height: 55px;
 	background: transparent;
 	border: none;
 	box-shadow: none;
@@ -984,15 +986,54 @@ export default {
 }
 
 .gallery-nav-btn-left {
-	left: -55px;
+	left: 6px;
 }
 
 .gallery-nav-btn-right {
-	right: -55px;
+	right: 6px;
 }
 
 .modal-overlay {
 	backdrop-filter: blur(8px);
+}
+
+@media (min-width: 400px) {
+	.inner {
+		--w: 580px;
+		--translateZ: 360px;
+	}
+}
+
+/* 响应式断点：中等大屏 */
+@media (min-width: 1400px) {
+	.inner {
+		--w: 650px;
+		--translateZ: 420px;
+	}
+}
+
+/* 响应式断点：大屏 (1680px+) */
+@media (min-width: 1680px) {
+	.inner {
+		--w: 680px;
+		--translateZ: 440px;
+	}
+}
+
+/* 响应式断点：全高清 (1920px+) */
+@media (min-width: 1920px) {
+	.inner {
+		--w: 760px;
+		--translateZ: 480px;
+	}
+}
+
+/* 响应式断点：2K/4K屏 (2560px+) */
+@media (min-width: 2560px) {
+	.inner {
+		--w: 790px;
+		--translateZ: 520px;
+	}
 }
 
 .modal-content {
