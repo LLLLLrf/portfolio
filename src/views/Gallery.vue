@@ -955,7 +955,7 @@ export default {
 	position: absolute;
 	top: calc(35% + 100px);
 	transform: translateY(-50%);
-	z-index: 100;
+	z-index: 10;
 	width: 55px;
 	height: 55px;
 	background: transparent;
