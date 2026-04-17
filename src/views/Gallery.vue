@@ -903,11 +903,13 @@ export default {
 	bottom: 0;
 	left: 0;
 	right: 0;
-	padding: 24px 16px 16px;
+	padding: 60px 16px 40px 16px;
 	background: linear-gradient(
 		to top,
-		rgba(0, 0, 0, 0.85) 0%,
-		rgba(0, 0, 0, 0.6) 50%,
+		rgba(0, 0, 0, 0.98) 0%,
+		rgba(0, 0, 0, 0.75) 40%,
+		rgba(0, 0, 0, 0.5) 60%,
+		rgba(0, 0, 0, 0.25) 80%,
 		rgba(0, 0, 0, 0) 100%
 	);
 	display: flex;
