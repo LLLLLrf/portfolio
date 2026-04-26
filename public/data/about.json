@@ -10,8 +10,8 @@
     {
       "id": 1773282826964,
       "bio": {
-        "zh": "本网站是我在开源项目基础上通过vibe coding二次开发而来，重新设计了页面ui动效，为静态网站添加了后台管理系统。希望通过简单易懂的图形化界面，让每个没有代码基础的人也能快速部署自己的个人网站和作品集。",
-        "en": "This website was developed by me based on an open-source project through the second-level development by vibe coding. It adds a backend management system to the static website and modifies and optimizes the front end. I hope that through a simple and understandable graphical interface, everyone without a coding background can quickly deploy their own personal websites and portfolios."
+        "zh": "本网站是我在开源项目上获得灵感，通过vibe coding开发而来，重新设计了页面ui动效，为静态网站添加了后台管理系统。希望通过简单易懂的图形化界面，让每个没有代码基础的人也能快速部署自己的个人网站和作品集。",
+        "en": "This website was developed by me inspired by an open-source project through development by vibe coding. It adds a backend management system to the static website and modifies and optimizes the front end. I hope that through a simple and understandable graphical interface, everyone without a coding background can quickly deploy their own personal websites and portfolios."
       }
     }
   ],
